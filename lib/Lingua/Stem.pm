@@ -64,22 +64,24 @@ give an idea of how batching and caching affect performance. The dataset was
 3000 randomly selected words from the snowball english voc.txt list repeated
 100 times (300000 words total, with 3000 unique words). The tests were performed
 on a Linux machine with a 1.7 Ghz Athlon processor running Perl 5.8.5. There
-are no tests listed for Lingua::Stem::Snowball using caching because it doesn't have 
+are no tests listed for Lingua::Stem::Snowball using caching because it doesn't have
 a caching mode.
 
-Lingua::Stem::Snowball, one word at a time, no caching:    26741 words/second
-Lingua::Stem::Snowball,   3000 word batches, no caching:  169710 words/second
-Lingua::Stem::Snowball, one batch, no caching:            155797 words/second
+ Lingua::Stem::Snowball, one word at a time, no caching:    26741 words/second
+ Lingua::Stem::Snowball,   3000 word batches, no caching:  169710 words/second
+ Lingua::Stem::Snowball, one batch, no caching:            155797 words/second
 
-Lingua::Stem, one word at a time, no caching:              13509 words/second
-Lingua::Stem,   3000 word batches, no caching:             32765 words/second
-Lingua::Stem, one batch, no caching:                       34847 words/second
+ Lingua::Stem, one word at a time, no caching:              13509 words/second
+ Lingua::Stem,   3000 word batches, no caching:             32765 words/second
+ Lingua::Stem, one batch, no caching:                       34847 words/second
 
-Lingua::Stem, one word at a time, cache level 2:           25736 words/second
-Lingua::Stem,   3000 word batches, cache level 2:         194384 words/second
-Lingua::Stem, one batch, cache level 2:                   216602 words/second
+ Lingua::Stem, one word at a time, cache level 2:           25736 words/second
+ Lingua::Stem,   3000 word batches, cache level 2:         194384 words/second
+ Lingua::Stem, one batch, cache level 2:                   216602 words/second
 
 =head1 CHANGES
+
+ 0.81 2004.07.26 - Minor documentation tweak. No functional change.
 
  0.80 2004.07.25 - Added 'RU', 'RU_RU', 'RU_RU.KOI-8' locale.
                    Added support for Lingua::Stem::Ru to
@@ -88,7 +90,7 @@ Lingua::Stem, one batch, cache level 2:                   216602 words/second
                    Added documentation stressing use of caching
                    and batches for performance. Added support
                    for '_' as a seperator in the locale strings.
-                   Added example benchmark script. Expanded copyright 
+                   Added example benchmark script. Expanded copyright
                    credits.
 
  0.70 2004.04.26 - Added FR locale and documentation fixes
@@ -147,7 +149,7 @@ use Lingua::Stem::AutoLoader;
 use vars qw (@ISA @EXPORT_OK %EXPORT_TAGS @EXPORT $VERSION);
 
 BEGIN {
-    $VERSION     = '0.80';
+    $VERSION     = '0.81';
     @ISA         = qw (Exporter);
     @EXPORT      = ();
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching add_exceptions delete_exceptions get_exceptions set_locale get_locale);
@@ -718,7 +720,7 @@ sub stem_caching {
 
 =head1 VERSION
 
- 0.80 2004.07.25
+ 0.81 2004.07.26
 
 =head1 NOTES
 

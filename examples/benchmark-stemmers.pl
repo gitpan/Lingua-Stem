@@ -1,4 +1,12 @@
 #!/opt/bin/perl
+
+#########################
+# Usage: ./benchmark-stemmers.pl voc.txt
+#
+# Runs speed (words/second) tests using randomly selected
+# words from a word list.
+#
+
 use strict;
 use Lingua::Stem qw ();
 use Time::HiRes qw(gettimeofday tv_interval);
