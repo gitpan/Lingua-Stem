@@ -10,6 +10,7 @@ WriteMakefile(
               'Lingua::Stem::Snowball::Da' => '1.01',
                         'Lingua::Stem::Fr' => '0.02',
                         'Lingua::Stem::It' => 0,
+                        'Lingua::Stem::Ru' => 0,
                      'Lingua::PT::Stemmer' => 0,
                      'Lingua::GL::Stemmer' => 0,
                             'Text::German' => 0,

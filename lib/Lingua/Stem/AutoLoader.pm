@@ -21,10 +21,13 @@ Sets up the autoloader to load the modules in the Lingua::Stem system on demand.
  Lingua::Stem::Gl - Galician
  Lingua::Stem::It - Italian
  Lingua::Stem::No - Norwegian
+ Lingua::Stem::Ru - Rusian 
  Lingua::Stem::Pt - Portuguese
  Lingua::Stem::Sv - Swedish
 
 =head1 CHANGES
+
+ 1.03 2004.07.25 - Added 'Lingua::Stem::Ru'
 
  1.02 2004.04.26 - Added 'Lingua::Stem::Fr'
 

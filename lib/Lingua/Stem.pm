@@ -52,13 +52,44 @@ Currently supported locales are:
       IT          - Italian
       NO          - Norwegian
       PT          - Portuguese
+      RU          - Russian (also RU-RU and RU-RU.KOI8-R)
       SV          - Swedish
 
 If you have the memory and lots of stemming to do,
-I _strongly_ suggest using cache level 2 and processing
+I B<strongly> suggest using cache level 2 and processing
 lists in 'big chunks' (long lists) for best performance.
 
+Some benchmarks using Lingua::Stem 0.80 and Lingua::Stem::Snowball 0.7
+give an idea of how batching and caching affect performance. The dataset was
+3000 randomly selected words from the snowball english voc.txt list repeated
+100 times (300000 words total, with 3000 unique words). The tests were performed
+on a Linux machine with a 1.7 Ghz Athlon processor running Perl 5.8.5. There
+are no tests listed for Lingua::Stem::Snowball using caching because it doesn't have 
+a caching mode.
+
+Lingua::Stem::Snowball, one word at a time, no caching:    26741 words/second
+Lingua::Stem::Snowball,   3000 word batches, no caching:  169710 words/second
+Lingua::Stem::Snowball, one batch, no caching:            155797 words/second
+
+Lingua::Stem, one word at a time, no caching:              13509 words/second
+Lingua::Stem,   3000 word batches, no caching:             32765 words/second
+Lingua::Stem, one batch, no caching:                       34847 words/second
+
+Lingua::Stem, one word at a time, cache level 2:           25736 words/second
+Lingua::Stem,   3000 word batches, cache level 2:         194384 words/second
+Lingua::Stem, one batch, cache level 2:                   216602 words/second
+
 =head1 CHANGES
+
+ 0.80 2004.07.25 - Added 'RU', 'RU_RU', 'RU_RU.KOI-8' locale.
+                   Added support for Lingua::Stem::Ru to
+                   Makefile.PL and autoloader.
+
+                   Added documentation stressing use of caching
+                   and batches for performance. Added support
+                   for '_' as a seperator in the locale strings.
+                   Added example benchmark script. Expanded copyright 
+                   credits.
 
  0.70 2004.04.26 - Added FR locale and documentation fixes
                    to Lingua::Stem::Gl
@@ -116,7 +147,7 @@ use Lingua::Stem::AutoLoader;
 use vars qw (@ISA @EXPORT_OK %EXPORT_TAGS @EXPORT $VERSION);
 
 BEGIN {
-    $VERSION     = '0.70';
+    $VERSION     = '0.80';
     @ISA         = qw (Exporter);
     @EXPORT      = ();
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching add_exceptions delete_exceptions get_exceptions set_locale get_locale);
@@ -147,7 +178,15 @@ my $defaults = {
                                -stem_caching => \&Lingua::Stem::En::stem_caching,
                            -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
                            },
+                       'en_us' => { -stemmer => \&Lingua::Stem::En::stem,
+                               -stem_caching => \&Lingua::Stem::En::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
+                           },
                        'en-us' => { -stemmer => \&Lingua::Stem::En::stem,
+                               -stem_caching => \&Lingua::Stem::En::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
+                           },
+                       'en_uk' => { -stemmer => \&Lingua::Stem::En::stem,
                                -stem_caching => \&Lingua::Stem::En::stem_caching,
                            -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
                            },
@@ -182,6 +221,30 @@ my $defaults = {
                           'sv' => { -stemmer => \&Lingua::Stem::Sv::stem,
                                -stem_caching => \&Lingua::Stem::Sv::stem_caching,
                            -clear_stem_cache => \&Lingua::Stem::Sv::clear_stem_cache,
+                           },
+                          'ru' => { -stemmer => \&Lingua::Stem::Ru::stem,
+                               -stem_caching => \&Lingua::Stem::Ru::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::Ru::clear_stem_cache,
+                           },
+                          'ru_ru' => {
+                                    -stemmer => \&Lingua::Stem::Ru::stem,
+                               -stem_caching => \&Lingua::Stem::Ru::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::Ru::clear_stem_cache,
+                           },
+                          'ru-ru' => {
+                                    -stemmer => \&Lingua::Stem::Ru::stem,
+                               -stem_caching => \&Lingua::Stem::Ru::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::Ru::clear_stem_cache,
+                           },
+                          'ru-ru.koi8-r' => {
+                                    -stemmer => \&Lingua::Stem::Ru::stem,
+                               -stem_caching => \&Lingua::Stem::Ru::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::Ru::clear_stem_cache,
+                           },
+                          'ru_ru.koi8-r' => {
+                                    -stemmer => \&Lingua::Stem::Ru::stem,
+                               -stem_caching => \&Lingua::Stem::Ru::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::Ru::clear_stem_cache,
                            },
                    },
     };
@@ -548,6 +611,7 @@ list of words.
 The stemmer performs best when handed long lists of words
 rather than one word at a time. The cache also provides
 a huge speed up if you are processing lots of text.
+
 =back
 
 =cut
@@ -613,7 +677,7 @@ a class method or an instance method.
     stem_caching({ -level => 1 });
 
 For the sake of maximum compatibility with previous versions,
-stem caching is set to '-level => 0' initially.
+stem caching is set to '-level => 0' by default.
 
 '-level' definitions
 
@@ -629,7 +693,7 @@ stem caching is global to the locale. If you turn on stem caching for one
 instance of a locale stemmer, all instances using the same locale will have it
 turned on as well.
 
-I STRONGLY suggest turning caching on if you have enough memory and
+I B<STRONGLY> suggest turning caching on if you have enough memory and
 are processing a lot of data.
 
 =back
@@ -654,7 +718,7 @@ sub stem_caching {
 
 =head1 VERSION
 
- 0.70 2004.04.26
+ 0.80 2004.07.25
 
 =head1 NOTES
 
@@ -687,23 +751,43 @@ family stemming, use lower case words, only, for exceptions.
  Ask Solem Hoel             <ask@unixmonks.net>
  Dennis Haney               <davh@davh.dk>
  Sébastien Darribere-Pleyt  <sebastien.darribere@lefute.com>
+ Aleksandr Guidrevitch      <pillgrim@mail.ru>
 
 =head1 SEE ALSO
 
  Lingua::Stem::En            Lingua::Stem::En            Lingua::Stem::Da
  Lingua::Stem::De            Lingua::Stem::Gl            Lingua::Stem::No
  Lingua::Stem::Pt            Lingua::Stem::Sv            Lingua::Stem::It
- Lingua::Stem::Fr            Text::German                Lingua::PT::Stemmer
- Lingua::GL::Stemmer         Lingua::Stem::Snowball::No  Lingua::Stem::Snowball::Se
- Lingua::Stem::Snowball::Da
+ Lingua::Stem::Fr            Lingua::Stem::Ru            Text::German
+ Lingua::PT::Stemmer         Lingua::GL::Stemmer         Lingua::Stem::Snowball::No
+ Lingua::Stem::Snowball::Se  Lingua::Stem::Snowball::Da  Lingua::Stem::Snowball::Sv
+ Lingua::Stemmer::GL         Lingua::Stem::Snowball
+
+ http://snowball.tartarus.org
 
 =head1 COPYRIGHT
 
 Copyright 1999-2004
 
-FreeRun Technologies, Inc (FreeRun),
+Freerun Technologies, Inc (Freerun),
 Jim Richardson, University of Sydney <imr@maths.usyd.edu.au>
 and Benjamin Franz <snowhare@nihongo.org>. All rights reserved.
+
+Text::German was written and is copyrighted by Ulrich Pfeifer.
+
+Lingua::Stem::Snowball::Da was written and is copyrighted by
+Dennis Haney and Ask Solem Hoel.
+
+Lingua::Stem::It was written and is copyrighted by Aldo Calpini.
+
+Lingua::Stem::Snowball::No, Lingua::Stem::Snowball::Se, Lingua::Stem::Snowball::Sv were
+written and are copyrighted by Ask Solem Hoel.
+
+Lingua::Stemmer::GL and Lingua::PT::Stemmer were written and are copyrighted by Xern.
+
+Lingua::Stem::Fr was written and is copyrighted by  Aldo Calpini and SÃ©bastien Darribere-Pley.
+
+Lingua::Stem::Ru was written and is copyrighted by Aleksandr Guidrevitch.
 
 This software may be freely copied and distributed under the same
 terms and conditions as Perl.
@@ -714,7 +798,9 @@ None known.
 
 =head1 TODO
 
-Add more languages. Extend regression tests.
+Add more languages. Extend regression tests. Add support for the
+Lingua::Stem::Snowball family of stemmers as an alternative core stemming
+engine.
 
 =cut
 
