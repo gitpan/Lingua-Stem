@@ -59,6 +59,8 @@ lists in 'big chunks' (long lists) for best performance.
 
 =head1 CHANGES
 
+ 0.61 2003.09.28 - Documentation fixes. No functional changes. 
+
  0.60 2003.04.05 - Added more locales by wrappering various stemming
                    implementations. Documented currently supported
                    list of locales.
@@ -110,7 +112,7 @@ use Lingua::Stem::AutoLoader;
 use vars qw (@ISA @EXPORT_OK %EXPORT_TAGS @EXPORT $VERSION);
 
 BEGIN {
-    $VERSION     = '0.60';
+    $VERSION     = '0.61';
     @ISA         = qw (Exporter);
     @EXPORT      = ();
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching add_exceptions delete_exceptions get_exceptions set_locale get_locale);

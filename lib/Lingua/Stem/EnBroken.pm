@@ -25,8 +25,8 @@ one of those people.
 It is derived from the C program "stemmer.c"
 as found in freewais and elsewhere, which contains these notes:
 
-   Purpose:    Implementation of the Porter stemming algorithm documented 
-               in: Porter, M.F., "An Algorithm For Suffix Stripping," 
+   Purpose:    Implementation of the Porter stemming algorithm documented
+               in: Porter, M.F., "An Algorithm For Suffix Stripping,"
                Program 14 (3), July 1980, pp. 130-137.
    Provenance: Written by B. Frakes and C. Cox, 1986.
 
@@ -42,10 +42,12 @@ support for the British -ise suffix.
 
 =head1 CHANGES
 
- 
+
+ 2003.09.28 -  Documentation fix
+
  2000.09.14 -  Forked from the Lingua::Stem::En.pm module to provide
                a backward compatibly broken version for people needing
-               consistent behavior with 0.30 and 0.40 more than accurate 
+               consistent behavior with 0.30 and 0.40 more than accurate
                stemming.
 
 =cut
@@ -64,13 +66,13 @@ BEGIN {
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching);
     %EXPORT_TAGS = ();
 }
-$VERSION = "2.12";
+$VERSION = "2.13";
 
 my $Stem_Caching  = 0;
 my $Stem_Cache    = {};
 
 #
-#V  Porter.pm V2.11 25 Aug 2000 stemming cache  
+#V  Porter.pm V2.11 25 Aug 2000 stemming cache
 #   Porter.pm V2.1  21 Jun 1999 with '&$sub if defined' not 'eval ""'
 #   Porter.pm V2.0  25 Nov 1994 (for Perl 5.000)
 #   porter.pl V1.0  10 Aug 1994 (for Perl 4.036)
@@ -131,7 +133,7 @@ my $hasvow = '[^aeiouy]*([aeiou]|y.)';
 =item stem({ -words => \@words, -locale => 'en', -exceptions => \%exceptions });
 
 Stems a list of passed words using the rules of US English. Returns
-an anonymous hash reference to the stemmed words.
+an anonymous array reference to the stemmed words.
 
 Example:
 
@@ -152,7 +154,7 @@ sub stem {
     } else {
         $parm_ref = { @_ };
     }
-    
+
     my $words      = [];
     my $locale     = 'en';
     my $exceptions = {};
@@ -168,7 +170,7 @@ sub stem {
             croak (__PACKAGE__ . "::stem() - Unknown parameter '$key' with value '$parm_ref->{$key}'\n");
         }
     }
-    
+
     local( $_ );
     foreach (@$words) {
 
@@ -184,7 +186,7 @@ sub stem {
         # Check against cache of stemmed words
         my $original_word = $_;
         if ($Stem_Caching && exists $Stem_Cache->{$original_word}) {
-            $_ = $Stem_Cache->{$original_word}; 
+            $_ = $Stem_Cache->{$original_word};
             next;
         }
 
@@ -194,14 +196,14 @@ sub stem {
 
         #  Reverse the word so we can easily apply pattern matching to the end:
         $_ = reverse $_;
-    
+
         #  Step 1a: plurals -- sses->ss, ies->i, ss->ss, s->0
-    
+
         m!^s! && ( s!^se(ss|i)!$1! || s!^s([^s])!$1! );
-    
+
         #  Step 1b: participles -- SYLeed->SYLee, VOWed->VOW, VOWing->VOW;
         #  but ated->ate etc
-    
+
         s!^dee($syl)!ee$1!o ||
         (
     	s!^(de|gni)($hasvow)!$2!o &&
@@ -214,57 +216,57 @@ sub stem {
     	    s!^([^aeiouwxy][aeiouy][^aeiou]+)$!e$1!
     	)
         );
-    
+
         #  Step 1c: change y to i: happy->happi, sky->sky
-    
+
         s!^y($hasvow)!i$1!o;
-    
+
         #  Step 2: double and triple suffices (part 1)
-    
+
         #  Switch on last three letters (fails harmlessly if subroutine undefined) --
         #  thanks to Ian Phillipps <ian@dial.pipex.com> who wrote
-        #    CPAN authors/id/IANPX/Stem-0.1.tar.gz 
+        #    CPAN authors/id/IANPX/Stem-0.1.tar.gz
         #  for suggesting the replacement of
         #    eval( '&S2' . unpack( 'a3', $_ ) );
         #  (where the eval ignores undefined subroutines) by the much faster
         #    eval { &{ 'S2' . substr( $_, 0, 3 ) } };
         #  But the following is slightly faster still:
-    
+
         my $sub;
-    
+
         &$sub if defined &{ $sub = 'S2' . substr( $_, 0, 3 ) };
-    
+
         #  Step 3: double and triple suffices, etc (part 2)
-    
+
         &$sub if defined &{ $sub = 'S3' . substr( $_, 0, 3 ) };
-    
+
         #  Step 4: single suffices on polysyllables
-    
+
         &$sub if defined &{ $sub = 'S4' . substr( $_, 0, 2 ) };
-    
+
         #  Step 5a: tidy up final e -- probate->probat, rate->rate; cease->ceas
-    
+
         m!^e! && ( s!^e($syl$syl)!$1!o ||
-    
+
     	# Porter's ( m=1 and not *o ) E where o = cvd with d a consonant
     	# not w, x or y:
-    
+
     	! m!^e[^aeiouwxy][aeiouy][^aeiou]! &&	# not *o E
     	s!^e($syl[aeiouy]*[^aeiou]*)$!$1!o	# m=1
         );
-    
+
         #  Step 5b: double l -- controll->control, roll->roll
         #  ** Note correction: Porter has m>1 here ($syl$syl), but it seems m>0
         #  ($syl) is wanted to strip an l off controll.
-    
+
         s!^ll($syl)!l$1!o;
-    
+
         $_ = scalar( reverse $_ );
 
         $Stem_Cache->{$original_word} = $_ if $Stem_Caching;
     }
     $Stem_Cache = {} if ($Stem_Caching < 2);
-    
+
     return $words;
 }
 
@@ -303,8 +305,8 @@ sub stem_caching {
         $Stem_Caching = $caching_level;
     }
     return $Stem_Caching;
-}    
-        
+}
+
 ##############################################################
 
 =over 4
@@ -337,7 +339,7 @@ written by Jim Richardson.
   Jim Richardson, University of Sydney
   jimr@maths.usyd.edu.au or http://www.maths.usyd.edu.au:8000/jimr.html
 
-  Integration in Lingua::Stem by 
+  Integration in Lingua::Stem by
   Benjamin Franz, FreeRun Technologies,
   snowhare@nihongo.org or http://www.nihongo.org/snowhare/
 

@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 
 use strict;
-use lib ('./blib','../lib','./lib');
+use lib ('./blib','../blib','../lib','./lib');
+use blib ('./blib','../blib','../lib','./lib');
 use Lingua::Stem qw(:all);
 
 my @do_tests=(1..3);

@@ -24,6 +24,8 @@ a standardized interface and caching.
 
 =head1 CHANGES
 
+1.01 2003.09.28 - Documentation fix
+
 1.00 2003.04.05 - Initial release
 
 =cut
@@ -45,7 +47,7 @@ BEGIN {
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching);
     %EXPORT_TAGS = ();
 }
-$VERSION = "1.00";
+$VERSION = "1.01";
 
 my $Stem_Caching  = 0;
 my $Stem_Cache    = {};
@@ -61,7 +63,7 @@ my $Stem_Cache    = {};
 =item stem({ -words => \@words, -locale => 'de', -exceptions => \%exceptions });
 
 Stems a list of passed words using the rules of German Returns
-an anonymous hash reference to the stemmed words.
+an anonymous array reference to the stemmed words.
 
 Example:
 

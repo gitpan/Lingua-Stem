@@ -54,6 +54,8 @@ support for the British -ise suffix.
               rule sets 2,3, and 4 starting with Lingua::Stem 0.30. 
               -- Benjamin Franz
 
+ 2003.09.28 - 2.13 Corrected documentation error pointed out by Simon Cozens.
+
 =cut
 
 #######################################################################
@@ -70,7 +72,7 @@ BEGIN {
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching);
     %EXPORT_TAGS = ();
 }
-$VERSION = "2.12";
+$VERSION = "2.13";
 
 my $Stem_Caching  = 0;
 my $Stem_Cache    = {};
@@ -137,7 +139,7 @@ my $hasvow = '[^aeiouy]*([aeiou]|y.)';
 =item stem({ -words => \@words, -locale => 'en', -exceptions => \%exceptions });
 
 Stems a list of passed words using the rules of US English. Returns
-an anonymous hash reference to the stemmed words.
+an anonymous array reference to the stemmed words.
 
 Example:
 
