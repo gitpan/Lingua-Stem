@@ -1,0 +1,8 @@
+MANIFEST
+Makefile.PL
+README
+lib/Lingua/Stem.pm
+lib/Lingua/Stem/AutoLoader.pm
+lib/Lingua/Stem/En.pm
+t/import-all.t
+t/object.t
