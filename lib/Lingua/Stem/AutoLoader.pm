@@ -25,8 +25,7 @@ my $_autoloaded_functions = {};
 
 my (@packageslist) =(
 	'Lingua::Stem::En',
-	'Lingua::Stem::En_Us',
-	'Lingua::Stem::En_Uk',
+	'Lingua::Stem::EnBroken',
 );
 
 my ($autoloader) =<<'EOF';

@@ -1,23 +1,26 @@
-package Lingua::Stem::En;
+package Lingua::Stem::EnBroken;
 
 # $RCSfile: En.pm,v $ $Revision: 1.4 $ $Date: 1999/06/24 23:33:37 $ $Author: snowhare $
 
 =head1 NAME
 
-Lingua::Stem::En - Porter's stemming algorithm for 'generic' English
+Lingua::Stem::EnBroken - Porter's stemming algorithm for 'generic' English
 
 =head1 SYNOPSIS
 
-    use Lingua::Stem::En;
-    my $stems   = Lingua::Stem::En::stem({ -words => $word_list_reference,
+    use Lingua::Stem::EnBroken;
+    my $stems   = Lingua::Stem::EnBroken::stem({ -words => $word_list_reference,
                                         -locale => 'en',
                                     -exceptions => $exceptions_hash,
                                      });
 
 =head1 DESCRIPTION
 
-This routine applies the Porter Stemming Algorithm to its parameters,
-returning the stemmed words.
+This routine MIS-applies the Porter Stemming Algorithm to its parameters,
+returning the stemmed words. It is an intentionally broken version
+of Lingua::Stem::En for people needing backwards compatibility with
+Lingua::Stem 0.30 and Lingua::Stem 0.40. Do not use it if you aren't
+one of those people.
 
 It is derived from the C program "stemmer.c"
 as found in freewais and elsewhere, which contains these notes:
@@ -40,19 +43,10 @@ support for the British -ise suffix.
 =head1 CHANGES
 
  
- 1999.06.15 - Changed to '.pm' module, moved into Lingua::Stem namespace,
-              optionalized the export of the 'stem' routine
-              into the caller's namespace, added named parameters
-
- 1999.06.24 - Switch core implementation of the Porter stemmer to
-              the one written by Jim Richardson <jimr@maths.usyd.edu.au>
-
- 2000.08.25 - 2.11 Added stemming cache
-
- 2000.09.14 - 2.12 Fixed *major* :( implementation error of Porter's algorithm
-              Error was entirely my fault - I completely forgot to include
-              rule sets 2,3, and 4 starting with Lingua::Stem 0.30. 
-              -- Benjamin Franz
+ 2000.09.14 -  Forked from the Lingua::Stem::En.pm module to provide
+               a backward compatibly broken version for people needing
+               consistent behavior with 0.30 and 0.40 more than accurate 
+               stemming.
 
 =cut
 
@@ -141,7 +135,7 @@ an anonymous hash reference to the stemmed words.
 
 Example:
 
-  my $stemmed_words = Lingua::Stem::En::stem({ -words => \@words,
+  my $stemmed_words = Lingua::Stem::EnBroken::stem({ -words => \@words,
                                               -locale => 'en',
                                           -exceptions => \%exceptions,
                           });
@@ -235,25 +229,19 @@ sub stem {
         #  (where the eval ignores undefined subroutines) by the much faster
         #    eval { &{ 'S2' . substr( $_, 0, 3 ) } };
         #  But the following is slightly faster still:
-
-        { 
-            no strict 'refs';
-            
-            my $sub;
     
-            #  Step 3: double and triple suffices, etc (part 2)
-
-            &$sub if defined &{ $sub = 'S2' . substr( $_, 0, 3 ) };
+        my $sub;
     
-            #  Step 3: double and triple suffices, etc (part 2)
+        &$sub if defined &{ $sub = 'S2' . substr( $_, 0, 3 ) };
     
-            &$sub if defined &{ $sub = 'S3' . substr( $_, 0, 3 ) };
+        #  Step 3: double and triple suffices, etc (part 2)
     
-            #  Step 4: single suffices on polysyllables
+        &$sub if defined &{ $sub = 'S3' . substr( $_, 0, 3 ) };
     
-            &$sub if defined &{ $sub = 'S4' . substr( $_, 0, 2 ) };
-   
-        }
+        #  Step 4: single suffices on polysyllables
+    
+        &$sub if defined &{ $sub = 'S4' . substr( $_, 0, 2 ) };
+    
         #  Step 5a: tidy up final e -- probate->probat, rate->rate; cease->ceas
     
         m!^e! && ( s!^e($syl$syl)!$1!o ||
@@ -278,200 +266,6 @@ sub stem {
     $Stem_Cache = {} if ($Stem_Caching < 2);
     
     return $words;
-}
-
-##############################################################
-# Rule set 2
-
-sub S2lan {
-    #  SYLational -> SYLate,	SYLtional -> SYLtion
-    s!^lanoita($syl)!eta$1!o || s!^lanoit($syl)!noit$1!o;
-}
-
-sub S2icn {
-    #  SYLanci -> SYLance, SYLency ->SYLence
-    s!^icn([ae]$syl)!ecn$1!o;
-}
-
-sub S2res {
-    #  SYLiser -> SYLise **
-    &S2rez;
-}
-
-sub S2rez {
-    #  SYLizer -> SYLize
-    s!^re(.)i($syl)!e$1i$2!o;
-}
-
-sub S2ilb {
-    #  SYLabli -> SYLable, SYLibli -> SYLible ** (e.g. incredibli)
-    s!^ilb([ai]$syl)!elb$1!o;
-}
-
-sub S2ill {
-    #  SYLalli -> SYLal
-    s!^illa($syl)!la$1!o;
-}
-
-sub S2ilt {
-    #  SYLentli -> SYLent
-    s!^iltne($syl)!tne$1!o
-}
-
-sub S2ile {
-    #  SYLeli -> SYLe
-    s!^ile($syl)!e$1!o;
-}
-
-sub S2ils {
-    #  SYLousli -> SYLous
-    s!^ilsuo($syl)!suo$1!o;
-}
-
-sub S2noi {
-    #  SYLization -> SYLize, SYLisation -> SYLise**, SYLation -> SYLate
-    s!^noita([sz])i($syl)!e$1i$2!o || s!^noita($syl)!eta$1!o;
-}
-
-sub S2rot {
-    #  SYLator -> SYLate
-    s!^rota($syl)!eta$1!o;
-}
-
-sub S2msi {
-    #  SYLalism -> SYLal
-    s!^msila($syl)!la$1!o;
-}
-
-sub S2sse {
-    #  SYLiveness  -> SYLive, SYLfulness -> SYLful, SYLousness -> SYLous
-    s!^ssen(evi|luf|suo)($syl)!$1$2!o;
-}
-
-sub S2iti {
-    #  SYLaliti -> SYLal, SYLiviti -> SYLive, SYLbiliti ->SYLble
-    s!^iti(la|lib|vi)($syl)! ( $1 eq 'la' ? 'la' : $1 eq 'lib' ? 'elb' : 'evi' )
-	. $2 !eo;
-}
-
-##############################################################
-# Rule set 3
-
-sub S3eta {
-    #  SYLicate -> SYLic
-    s!^etaci($syl)!ci$1!o;
-}
-
-sub S3evi {
-    #  SYLative -> SYL
-    s!^evita($syl)!$1!o;
-}
-
-sub S3ezi
-{
-    #  SYLalize -> SYLal
-    s!^ezila($syl)!la$1!o;
-}
-
-sub S3esi {
-    #  SYLalise -> SYLal **
-    s!^esila($syl)!la$1!o;
-}
-
-sub S3iti {
-    #  SYLiciti -> SYLic
-    s!^itici($syl)!ci$1!o;
-}
-
-sub S3lac {
-    #  SYLical -> SYLic
-    s!^laci($syl)!ci$1!o;
-}
-sub S3luf {
-    #  SYLful -> SYL
-    s!^luf($syl)!$1!o;
-}
-
-sub S3sse {
-    #  SYLness -> SYL
-    s!^ssen($syl)!$1!o;
-}
-
-##############################################################
-# Rule set 4
-
-sub S4la {
-    #  SYLSYLal -> SYLSYL
-    s!^la($syl$syl)!$1!o;
-}
-
-sub S4ec {
-    #  SYLSYL[ae]nce -> SYLSYL
-    s!^ecn[ae]($syl$syl)!$1!o;
-}
-
-sub S4re {
-    #  SYLSYLer -> SYLSYL
-    s!^re($syl$syl)!$1!o;
-}
-
-sub S4ci {
-    #  SYLSYLic -> SYLSYL
-    s!^ci($syl$syl)!$1!o;
-}
-
-sub S4el {
-    #  SYLSYL[ai]ble -> SYLSYL
-    s!^elb[ai]($syl$syl)!$1!o;
-}
-
-sub S4tn {
-    #  SYLSYLant -> SYLSYL, SYLSYLe?ment -> SYLSYL, SYLSYLent -> SYLSYL
-    s!^tn(a|e(me?)?)($syl$syl)!$3!o;
-}
-sub S4no {
-    #  SYLSYL[st]ion -> SYLSYL[st]
-    s!^noi([st]$syl$syl)!$1!o;
-}
-
-sub S4uo {
-    #  SYLSYLou -> SYLSYL e.g. homologou -> homolog
-    s!^uo($syl$syl)!$1!o;
-}
-
-sub S4ms {
-    #  SYLSYLism -> SYLSYL
-    s!^msi($syl$syl)!$1!o;
-}
-
-sub S4et {
-    #  SYLSYLate -> SYLSYL
-    s!^eta($syl$syl)!$1!o;
-}
-
-sub S4it {
-    #  SYLSYLiti -> SYLSYL
-    s!^iti($syl$syl)!$1!o;
-}
-
-sub S4su {
-    #  SYLSYLous -> SYLSYL
-    s!^suo($syl$syl)!$1!o;
-}
-
-sub S4ev { 
-    #  SYLSYLive -> SYLSYL
-    s!^evi($syl$syl)!$1!o;
-}
-
-sub S4ez {
-    #  SYLSYLize -> SYLSYL
-    s!^ezi($syl$syl)!$1!o;
-}
-
-sub S4es {
-    #  SYLSYLise -> SYLSYL **
-    s!^esi($syl$syl)!$1!o;
 }
 
 ##############################################################

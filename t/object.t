@@ -43,7 +43,7 @@ sub test1 {
 	my $stemmer = Lingua::Stem->new;
 	my $original_locale  = $stemmer->get_locale;
 
-	my @test_locales = ('En','En-Us','En-Uk');
+	my @test_locales = ('En','En-Us','En-Uk', 'En-Broken');
 	my @errors = ();
 	foreach my $test_locale (@test_locales,$test_locales[0]) {
 		$stemmer->set_locale($test_locale);

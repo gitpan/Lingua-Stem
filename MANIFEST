@@ -4,5 +4,6 @@ README
 lib/Lingua/Stem.pm
 lib/Lingua/Stem/AutoLoader.pm
 lib/Lingua/Stem/En.pm
+lib/Lingua/Stem/EnBroken.pm
 t/import-all.t
 t/object.t

@@ -42,7 +42,7 @@ exit;
 sub test1 {
 	my $original_locale  = get_locale;
 
-	my @test_locales = ('En','En-Us','En-Uk');
+	my @test_locales = ('En','En-Us','En-Uk','En-Broken');
 	foreach my $test_locale (@test_locales,$test_locales[0]) {
 		set_locale($test_locale);
 		my $new_locale  = get_locale;

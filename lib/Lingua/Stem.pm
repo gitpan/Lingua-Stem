@@ -43,6 +43,15 @@ use Lingua::Stem qw (stem clear_stem_cache stem_caching
 
 =head1 CHANGES
 
+ 0.50 2000.09.14 - Fixed major implementation error. Starting with
+                   version 0.30 I forgot to include rulesets 2,3 and 4
+                   for Porter's algorithm. The resulting stemming results
+                   were very poor. Thanks go to <csyap@netfision.com>
+                   for bringing the problem to my attention. Unfortunately,
+                   the fix inherently generates *different*
+                   stemming results than 0.30 and 0.40 did. If you
+                   need identically broken output - use locale 'en-broken'.
+
  0.40 2000.08.25 - Added stem caching support as an option. This
                    can provide a large speedup to the operation
                    of the stemmer. Caching is default turned off
@@ -80,7 +89,7 @@ use Lingua::Stem::AutoLoader;
 use vars qw (@ISA @EXPORT_OK %EXPORT_TAGS @EXPORT $VERSION);
 
 BEGIN {
-    $VERSION     = '0.40';
+    $VERSION     = '0.50';
     @ISA         = qw (Exporter);
     @EXPORT      = ();
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching add_exceptions delete_exceptions get_exceptions set_locale get_locale);
@@ -109,6 +118,10 @@ my $defaults = {
                        'en-uk' => { -stemmer => \&Lingua::Stem::En::stem, 
                                -stem_caching => \&Lingua::Stem::En::stem_caching,
                            -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
+                           },
+                       'en-broken' => { -stemmer => \&Lingua::Stem::En_Broken::stem, 
+                               -stem_caching => \&Lingua::Stem::En_Broken::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::En_Broken::clear_stem_cache,
                            },
                    },
     };
