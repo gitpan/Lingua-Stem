@@ -5,7 +5,6 @@ WriteMakefile(
     'NAME'           => 'Lingua::Stem',
     'VERSION_FROM'   => 'lib/Lingua/Stem.pm',
     'PREREQ_PM'      => { 
-                          'Carp'              => 0,
                          },
     'linkext'        => { LINKTYPE => '' },    # no link needed
     'dist'           => { 'COMPRESS' => 'gzip -9f', 

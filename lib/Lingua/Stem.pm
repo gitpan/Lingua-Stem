@@ -29,17 +29,24 @@ locale.
 
 You can import some or all of the class methods.
 
-use Lingua::Stem qw (stem add_exceptions delete_exceptions 
+use Lingua::Stem qw (stem clear_stem_cache stem_caching 
+                     add_exceptions delete_exceptions 
                      get_exceptions set_locale get_locale 
-                     :all :locale :exceptions :stem);
+                     :all :locale :exceptions :stem :caching);
 
  :all        - imports  stem add_exceptions delete_exceptions get_exceptions 
                set_locale get_locale
  :stem       - imports  stem
+ :caching    - imports  stem_caching clear_stem_cache
  :locale     - imports  set_locale get_locale
  :exceptions - imports  add_exceptions delete_exceptions get_exceptions
 
 =head1 CHANGES
+
+ 0.40 2000.08.25 - Added stem caching support as an option. This
+                   can provide a large speedup to the operation
+                   of the stemmer. Caching is default turned off
+                   to maximize compatibility with previous versions.
 
  0.30 1999.06.24 - Replaced core of 'En' stemmers with code from
                    Jim Richardson <jimr@maths.usyd.edu.au>
@@ -54,7 +61,7 @@ use Lingua::Stem qw (stem add_exceptions delete_exceptions
                    initialization, stemming exceptions, autoloaded
                    locale support and isolated case flattening to
                    localized stemmers prevent i18n problems later. 
- 
+
                    Input and output text are assumed to be in UTF8
                    encoding (no operational impact right now, but
                    will be important when extending the module to
@@ -73,24 +80,36 @@ use Lingua::Stem::AutoLoader;
 use vars qw (@ISA @EXPORT_OK %EXPORT_TAGS @EXPORT $VERSION);
 
 BEGIN {
-    $VERSION     = '0.30';
+    $VERSION     = '0.40';
     @ISA         = qw (Exporter);
     @EXPORT      = ();
-    @EXPORT_OK   = qw (stem add_exceptions delete_exceptions get_exceptions set_locale get_locale);
-    %EXPORT_TAGS = ( 'all' => [qw (stem add_exceptions delete_exceptions get_exceptions set_locale get_locale)],
+    @EXPORT_OK   = qw (stem clear_stem_cache stem_caching add_exceptions delete_exceptions get_exceptions set_locale get_locale);
+    %EXPORT_TAGS = ( 'all' => [qw (stem stem_caching clear_stem_cache add_exceptions delete_exceptions get_exceptions set_locale get_locale)],
                     'stem' => [qw (stem)],
+                 'caching' => [qw (stem_caching clear_stem_cache)],
                   'locale' => [qw (set_locale get_locale)],
               'exceptions' => [qw (add_exceptions delete_exceptions get_exceptions)],
                  );
 }
 
 my $defaults = {
-         -locale => 'en',
-        -stemmer => \&Lingua::Stem::En::stem,
-     -exceptions => {},
-  -known_locales => { 'en' => \&Lingua::Stem::En::stem,
-                   'en-us' => \&Lingua::Stem::En::stem,
-                   'en-uk' => \&Lingua::Stem::En::stem, 
+            -locale => 'en',
+           -stemmer => \&Lingua::Stem::En::stem,
+      -stem_caching => \&Lingua::Stem::En::stem_caching,
+  -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
+        -exceptions => {},
+      -known_locales => { 'en' => { -stemmer => \&Lingua::Stem::En::stem, 
+                               -stem_caching => \&Lingua::Stem::En::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
+                           },
+                       'en-us' => { -stemmer => \&Lingua::Stem::En::stem, 
+                               -stem_caching => \&Lingua::Stem::En::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
+                           },
+                       'en-uk' => { -stemmer => \&Lingua::Stem::En::stem, 
+                               -stem_caching => \&Lingua::Stem::En::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
+                           },
                    },
     };
 
@@ -106,7 +125,7 @@ my $defaults = {
 
 =over 4
 
-=item C<new(...);>
+=item new(...);
 
 Returns a new instance of a Lingua::Stem object and, optionally, selection
 of the locale to be used for stemming.
@@ -128,13 +147,15 @@ Examples:
 
 sub new {
     my $proto = shift;
-    my $class = ref ($proto) || $proto;
+    my $class = ref ($proto) || $proto || __PACKAGE__;
     my $self = bless {},$class;
 
     # Set the defaults
-    %{$self->{'Lingua::Stem'}->{-exceptions}} = %{$defaults->{-exceptions}};
-    $self->{'Lingua::Stem'}->{-locale}        = $defaults->{-locale};
-    $self->{'Lingua::Stem'}->{-stemmer}       = $defaults->{-stemmer};
+    %{$self->{'Lingua::Stem'}->{-exceptions}}     = %{$defaults->{-exceptions}};
+    $self->{'Lingua::Stem'}->{-locale}            = $defaults->{-locale};
+    $self->{'Lingua::Stem'}->{-stemmer}           = $defaults->{-stemmer};
+    $self->{'Lingua::Stem'}->{-stem_caching}      = $defaults->{-stem_caching};
+    $self->{'Lingua::Stem'}->{-clear_stem_cache}  = $defaults->{-clear_stem_cache};
 
     # Handle any passed parms
     my @errors = ();
@@ -161,7 +182,7 @@ sub new {
 
 =over 4
 
-=item C<set_locale($locale);>
+=item set_locale($locale);
 
 Sets the locale to one of the recognized locales. Currently,
 'en', 'en-us' and 'en-uk' are the only recognized locales. All
@@ -197,15 +218,19 @@ sub set_locale {
         if (not exists $defaults->{-known_locales}->{$locale}) {
             croak (__PACKAGE__ . "::set_locale() - Unknown locale '$locale'");
         }
-        $self->{'Lingua::Stem'}->{-locale} = $locale;
-        $self->{'Lingua::Stem'}->{-stemmer} = $defaults->{-known_locales}->{$locale};
+        $self->{'Lingua::Stem'}->{-locale}           = $locale;
+        $self->{'Lingua::Stem'}->{-stemmer}          = $defaults->{-known_locales}->{$locale}->{-stemmer};
+        $self->{'Lingua::Stem'}->{-stem_caching}     = $defaults->{-known_locales}->{$locale}->{-stem_caching};
+        $self->{'Lingua::Stem'}->{-clear_stem_cache} = $defaults->{-known_locales}->{$locale}->{-clear_stem_cache};
     } else {
         $locale = lc $self;
         if (not exists $defaults->{-known_locales}->{$locale}) {
             croak (__PACKAGE__ . "::set_locale() - Unknown locale '$locale'");
         }
-        $defaults->{-locale} = $locale;
-        $defaults->{-stemmer} = $defaults->{-known_locales}->{$locale};
+        $defaults->{-locale}           = $locale;
+        $defaults->{-stemmer}          = $defaults->{-known_locales}->{$locale}->{-stemmer};
+        $defaults->{-stem_caching}     = $defaults->{-known_locales}->{$locale}->{-stem_caching};
+        $defaults->{-clear_stem_cache} = $defaults->{-known_locales}->{$locale}->{-clear_stem_cache};
     }
 }
 
@@ -213,7 +238,7 @@ sub set_locale {
 
 =over 4
 
-=item C<get_locale;>
+=item get_locale;
 
 Called as a class method, returns the current default locale.
 
@@ -243,7 +268,7 @@ sub get_locale {
 
 =over 4
 
-=item C<add_exceptions($exceptions_hash_ref);>
+=item add_exceptions($exceptions_hash_ref);
 
 Exceptions allow overriding the stemming algorithm on a case by case
 basis. It is done on an exact match and substitution basis: If a passed
@@ -301,7 +326,7 @@ sub add_exceptions {
 
 =over 4
 
-=item C<delete_exceptions(@exceptions_list);>
+=item delete_exceptions(@exceptions_list);
 
 The mirror of add_exceptions, this allows the _removal_ of exceptions
 from either the defaults for the class or from the instance.
@@ -360,7 +385,7 @@ sub delete_exceptions {
 
 =over 4
 
-=item C<get_exceptions;>
+=item get_exceptions;
 
 As a class method with no parameters it returns all the default exceptions 
 as an anonymous hash of 'exception' => 'replace with' pairs.
@@ -425,7 +450,7 @@ sub get_exceptions {
 
 =over 4
 
-=item C<stem(@list);>
+=item stem(@list);
 
 Called as a class method, it applies the default settings
 and stems the list of passed words, returning an anonymous
@@ -433,7 +458,7 @@ array with the stemmed words in the same order as the passed
 list of words.
 
 Example:
-    
+
     # Default settings applied
     my $stemmed_words = Lingua::Stem::stem(@words);
 
@@ -452,7 +477,7 @@ list of words.
 sub stem {
     my $self;
     return [] if ($#_ == -1);
-    my ($exceptions,$locale,$stemmer,$words);
+    my ($exceptions,$locale,$stemmer);
     if (ref $_[0]) {
         my $self = shift;
         $exceptions = $self->{'Lingua::Stem'}->{-exceptions};
@@ -469,15 +494,94 @@ sub stem {
 }
 
 #######################################################################
+
+=over 4
+
+=item clear_stem_cache;
+
+Clears the stemming cache for the current locale. Can be called as either
+a class method or an instance method.
+
+    $stemmer->clear_stem_cache;
+
+    clear_stem_cache;
+
+=back
+
+=cut
+
+sub clear_stem_cache {
+    my $clear_stem_cache_sub;
+    if (ref $_[0]) {
+        my $self = shift;
+        $clear_stem_cache_sub = $self->{'Lingua::Stem'}->{-clear_stem_cache};
+    } else {
+        $clear_stem_cache_sub = $defaults->{-clear_stem_cache};
+    }
+    &$clear_stem_cache_sub;
+}
+
+#######################################################################
+
+=over 4
+
+=item stem_caching ({ -level => 0|1|2 });
+
+Sets stemming cache level for the current locale. Can be called as either
+a class method or an instance method.
+
+    $stemmer->stem_caching({ -level => 1 });
+
+    stem_caching({ -level => 1 });
+
+For the sake of maximum compatibility with previous versions, 
+stem caching is set to '-level => 0' initially.
+
+'-level' definitions
+
+ '0' means 'no caching'. This is the default level.
+
+ '1' means 'cache per run'. This caches stemming results during each 
+    call to 'stem'.
+
+ '2' means 'cache indefinitely'. This caches stemming results until
+    either the process exits or the 'clear_stem_cache' method is called.
+
+stem caching is global to the locale. If you turn on stem caching for one
+instance of a locale stemmer, all instances using the same locale will have it
+turned on as well.
+
+=back
+
+=cut
+
+sub stem_caching {
+    my $stem_caching_sub;
+    my $first_parm_ref = ref $_[0];
+    if ($first_parm_ref && ($first_parm_ref ne 'HASH')) {
+        my $self = shift;
+        $stem_caching_sub = $self->{'Lingua::Stem'}->{-stem_caching};
+    } else {
+        $stem_caching_sub = $defaults->{-stem_caching};
+    }
+    &$stem_caching_sub(@_);
+}
+
+#######################################################################
 # Terminal POD Documentation 
 #######################################################################
 
 =head1 NOTES
 
-This is version 0.30. It started with the 'Text::Stem' module which
-has been adapted into a more general frameword and moved into the more 
+This is version 0.40. 
+
+It started with the 'Text::Stem' module which has been adapted into 
+a more general framework and moved into the more 
 language oriented 'Lingua' namespace and re-organized to support a OOP
 interface as well as switch core 'En' locale stemmers. 
+
+Version 0.40 added a cache for stemmed words. This can provide up
+to a 4 fold performance improvement.
 
 Organization is such that extending this module to any number 
 of languages should be direct and simple.

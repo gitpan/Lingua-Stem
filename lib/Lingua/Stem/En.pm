@@ -8,8 +8,8 @@ Lingua::Stem::En - Porter's stemming algorithm for 'generic' English
 
 =head1 SYNOPSIS
 
-    use Text::Stem::En;
-    my $stems   = Text::Stem::En::stem({ -words => $word_list_reference,
+    use Lingua::Stem::En;
+    my $stems   = Lingua::Stem::En::stem({ -words => $word_list_reference,
                                         -locale => 'en',
                                     -exceptions => $exceptions_hash,
                                      });
@@ -39,12 +39,15 @@ support for the British -ise suffix.
 
 =head1 CHANGES
 
+ 
  1999.06.15 - Changed to '.pm' module, moved into Lingua::Stem namespace,
               optionalized the export of the 'stem' routine
               into the caller's namespace, added named parameters
 
  1999.06.24 - Switch core implementation of the Porter stemmer to
               the one written by Jim Richardson <jimr@maths.usyd.edu.au>
+
+ 2000.08.25 - 2.11 Added stemming cache
 
 =cut
 
@@ -59,15 +62,19 @@ use vars qw (@ISA @EXPORT_OK @EXPORT %EXPORT_TAGS $VERSION);
 BEGIN {
     @ISA         = qw (Exporter);
     @EXPORT      = ();
-    @EXPORT_OK   = qw (stem);
+    @EXPORT_OK   = qw (stem clear_stem_cache stem_caching);
     %EXPORT_TAGS = ();
 }
-$VERSION = "2.10";
+$VERSION = "2.11";
+
+my $Stem_Caching  = 0;
+my $Stem_Cache    = {};
 
 #
-#V  Porter.pm V2.1 21 Jun 1999 with '&$sub if defined' not 'eval ""'
-#   Porter.pm V2.0 25 Nov 1994 (for Perl 5.000)
-#   porter.pl V1.0 10 Aug 1994 (for Perl 4.036)
+#V  Porter.pm V2.11 25 Aug 2000 stemming cache  
+#   Porter.pm V2.1  21 Jun 1999 with '&$sub if defined' not 'eval ""'
+#   Porter.pm V2.0  25 Nov 1994 (for Perl 5.000)
+#   porter.pl V1.0  10 Aug 1994 (for Perl 4.036)
 #   Jim Richardson, University of Sydney
 #   jimr@maths.usyd.edu.au or http://www.maths.usyd.edu.au:8000/jimr.html
 
@@ -122,7 +129,7 @@ my $hasvow = '[^aeiouy]*([aeiou]|y.)';
 
 =over 4
 
-=item C<stem($param_ref);>
+=item stem({ -words => \@words, -locale => 'en', -exceptions => \%exceptions });
 
 Stems a list of passed words using the rules of US English. Returns
 an anonymous hash reference to the stemmed words.
@@ -174,6 +181,13 @@ sub stem {
 			$_ = $exceptions->{$_};
 			next;
 		}
+
+        # Check against cache of stemmed words
+        my $original_word = $_;
+        if ($Stem_Caching && exists $Stem_Cache->{$original_word}) {
+            $_ = $Stem_Cache->{$original_word}; 
+            next;
+        }
 
         # Step 0 - remove punctuation
         s/'s$//; s/^[^a-z]+//; s/[^a-z]+$//;
@@ -247,9 +261,68 @@ sub stem {
         s!^ll($syl)!l$1!o;
     
         $_ = scalar( reverse $_ );
+
+        $Stem_Cache->{$original_word} = $_ if $Stem_Caching;
     }
-    $words;
+    $Stem_Cache = {} if ($Stem_Caching < 2);
+    
+    return $words;
 }
+
+##############################################################
+
+=over 4
+
+=item stem_caching({ -level => 0|1|2 });
+
+Sets the level of stem caching.
+
+'0' means 'no caching'. This is the default level.
+
+'1' means 'cache per run'. This caches stemming results during a single
+    call to 'stem'.
+
+'2' means 'cache indefinitely'. This caches stemming results until
+    either the process exits or the 'clear_stem_cache' method is called.
+
+=back
+
+=cut
+
+sub stem_caching {
+    my $parm_ref;
+    if (ref $_[0]) {
+        $parm_ref = shift;
+    } else {
+        $parm_ref = { @_ };
+    }
+    my $caching_level = $parm_ref->{-level};
+    if (defined $caching_level) {
+        if ($caching_level !~ m/^[012]$/) {
+            croak(__PACKAGE__ . "::stem_caching() - Legal values are '0','1' or '2'. '$caching_level' is not a legal value");
+        }
+        $Stem_Caching = $caching_level;
+    }
+    return $Stem_Caching;
+}    
+        
+##############################################################
+
+=over 4
+
+=item clear_stem_cache;
+
+Clears the cache of stemmed words
+
+=back
+
+=cut
+
+sub clear_stem_cache {
+    $Stem_Cache = {};
+}
+
+##############################################################
 
 =head1 NOTES
 
