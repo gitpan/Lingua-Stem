@@ -1,3 +1,8 @@
+        0.70 2004.04.26 - Added support for Lingua::Stem::Fr and
+                          documentation fixes for Lingua::Stem::Gl
+
+        0.61 2003.09.28 - Documentation fixes. No functional changes.
+
         0.60 2003.04.05 - Added more locales by wrappering various stemming
                           implementations. Documented currently supported
                           list of locales.

@@ -8,6 +8,7 @@ WriteMakefile(
               'Lingua::Stem::Snowball::No' => '1.00',
               'Lingua::Stem::Snowball::Se' => '1.01',
               'Lingua::Stem::Snowball::Da' => '1.01',
+                        'Lingua::Stem::Fr' => '0.02',
                         'Lingua::Stem::It' => 0,
                      'Lingua::PT::Stemmer' => 0,
                      'Lingua::GL::Stemmer' => 0,

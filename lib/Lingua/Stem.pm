@@ -44,9 +44,10 @@ use Lingua::Stem qw (stem clear_stem_cache stem_caching
 
 Currently supported locales are:
 
-      EN          - English (also EN-US and EN-UK)
       DA          - Danish
       DE          - German
+      EN          - English (also EN-US and EN-UK)
+      FR          - French
       GL          - Galician
       IT          - Italian
       NO          - Norwegian
@@ -59,7 +60,10 @@ lists in 'big chunks' (long lists) for best performance.
 
 =head1 CHANGES
 
- 0.61 2003.09.28 - Documentation fixes. No functional changes. 
+ 0.70 2004.04.26 - Added FR locale and documentation fixes
+                   to Lingua::Stem::Gl
+
+ 0.61 2003.09.28 - Documentation fixes. No functional changes.
 
  0.60 2003.04.05 - Added more locales by wrappering various stemming
                    implementations. Documented currently supported
@@ -70,7 +74,7 @@ lists in 'big chunks' (long lists) for best performance.
                    for Porter's algorithm. The resulting stemming results
                    were very poor. Thanks go to <csyap@netfision.com>
                    for bringing the problem to my attention.
-                   
+
                    Unfortunately, the fix inherently generates *different*
                    stemming results than 0.30 and 0.40 did. If you
                    need identically broken output - use locale 'en-broken'.
@@ -112,7 +116,7 @@ use Lingua::Stem::AutoLoader;
 use vars qw (@ISA @EXPORT_OK %EXPORT_TAGS @EXPORT $VERSION);
 
 BEGIN {
-    $VERSION     = '0.61';
+    $VERSION     = '0.70';
     @ISA         = qw (Exporter);
     @EXPORT      = ();
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching add_exceptions delete_exceptions get_exceptions set_locale get_locale);
@@ -154,6 +158,10 @@ my $defaults = {
                    'en-broken' => { -stemmer => \&Lingua::Stem::En_Broken::stem,
                                -stem_caching => \&Lingua::Stem::En_Broken::stem_caching,
                            -clear_stem_cache => \&Lingua::Stem::En_Broken::clear_stem_cache,
+                           },
+                          'fr' => { -stemmer => \&Lingua::Stem::Fr::stem,
+                               -stem_caching => \&Lingua::Stem::Fr::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::Fr::clear_stem_cache,
                            },
                           'gl' => { -stemmer => \&Lingua::Stem::Gl::stem,
                                -stem_caching => \&Lingua::Stem::Gl::stem_caching,
@@ -646,7 +654,7 @@ sub stem_caching {
 
 =head1 VERSION
 
- 0.60 2003.04.05
+ 0.70 2004.04.26
 
 =head1 NOTES
 
@@ -672,24 +680,26 @@ family stemming, use lower case words, only, for exceptions.
 
 =head1 CREDITS
 
- Jim Richardson  <imr@maths.usyd.edu.au>
- Ulrich Pfeifer  <pfeifer@ls6.informatik.uni-dortmund.de>
- Aldo Calpini    <dada@perl.it>
- xern            <xern@cpan.org>
- Ask Solem Hoel  <ask@unixmonks.net>
- Dennis Haney i  <davh@davh.dk>
+ Jim Richardson             <imr@maths.usyd.edu.au>
+ Ulrich Pfeifer             <pfeifer@ls6.informatik.uni-dortmund.de>
+ Aldo Calpini               <dada@perl.it>
+ xern                       <xern@cpan.org>
+ Ask Solem Hoel             <ask@unixmonks.net>
+ Dennis Haney               <davh@davh.dk>
+ Sébastien Darribere-Pleyt  <sebastien.darribere@lefute.com>
 
 =head1 SEE ALSO
 
  Lingua::Stem::En            Lingua::Stem::En            Lingua::Stem::Da
  Lingua::Stem::De            Lingua::Stem::Gl            Lingua::Stem::No
- Linuta::Stem::Pt            Linuta::Stem::Sv            Lingua::Stem::It
- Text::German                Lingua::PT::Stemmer         Lingua::GL::Stemmer
- Lingua::Stem::Snowball::No  Lingua::Stem::Snowball::Se  Lingua::Stem::Snowball::Da
+ Lingua::Stem::Pt            Lingua::Stem::Sv            Lingua::Stem::It
+ Lingua::Stem::Fr            Text::German                Lingua::PT::Stemmer
+ Lingua::GL::Stemmer         Lingua::Stem::Snowball::No  Lingua::Stem::Snowball::Se
+ Lingua::Stem::Snowball::Da
 
 =head1 COPYRIGHT
 
-Copyright 1999-2003
+Copyright 1999-2004
 
 FreeRun Technologies, Inc (FreeRun),
 Jim Richardson, University of Sydney <imr@maths.usyd.edu.au>

@@ -4,7 +4,7 @@ package Lingua::Stem::Gl;
 
 =head1 NAME
 
-Lingua::Stem::Gl - Stemming algorithm for Portuguese
+Lingua::Stem::Gl - Stemming algorithm for Galacian
 
 =head1 SYNOPSIS
 
@@ -23,6 +23,8 @@ It is a 'convienence' wrapper for 'Lingua::Stemmer::GL' that provides
 a standardized interface and caching.
 
 =head1 CHANGES
+
+1.02 2004.04.26 - Documenation fix
 
 1.01 2003.09.28 - Documentation fix
 
@@ -47,7 +49,7 @@ BEGIN {
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching);
     %EXPORT_TAGS = ();
 }
-$VERSION = "1.01";
+$VERSION = "1.02";
 
 my $Stem_Caching  = 0;
 my $Stem_Cache    = {};

@@ -43,7 +43,7 @@ exit;
 sub test1 {
 	my $original_locale  = get_locale;
 
-	my @test_locales = qw(En En-Us En-Uk En-Broken Da De Gl It No Pt Sv);
+	my @test_locales = qw(En En-Us En-Uk En-Broken Da De Fr Gl It No Pt Sv);
 
 	foreach my $test_locale (@test_locales,$test_locales[0]) {
 		set_locale($test_locale);
@@ -94,6 +94,10 @@ sub test2 {
 	        'En-Uk' => {
                   -words => [qw(The lazy red dogs quickly run over the gurgling brook)],
                  -expect => [qw(the lazi red dog quickli run over the gurgl brook)],
+				  },
+	        'Fr' => {
+                  -words => [qw(fouillait fouilleront fouillent fouillez fortunées fortuné froidement)],
+                 -expect => [qw(fouill    fouill      fouill     fouill  fortun    fortun  froid)],
 				  },
 	        'It' => {
                   -words => [qw(programma   programmi   programmare   programmazione

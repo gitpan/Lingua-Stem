@@ -17,6 +17,7 @@ Sets up the autoloader to load the modules in the Lingua::Stem system on demand.
  Lingua::Stem::Da - Danish
  Lingua::Stem::De - German
  Lingua::Stem::En - English
+ Lingua::Stem::Fr - French 
  Lingua::Stem::Gl - Galician
  Lingua::Stem::It - Italian
  Lingua::Stem::No - Norwegian
@@ -24,6 +25,8 @@ Sets up the autoloader to load the modules in the Lingua::Stem system on demand.
  Lingua::Stem::Sv - Swedish
 
 =head1 CHANGES
+
+ 1.02 2004.04.26 - Added 'Lingua::Stem::Fr'
 
  1.01 2003.04.05 - Added 'Lingua::Stem::De',   'Lingua::Stem::Da',
                          'Lingua::Stem::Gl',   'Lingua::Stem::It',
@@ -37,13 +40,14 @@ Sets up the autoloader to load the modules in the Lingua::Stem system on demand.
 use strict;
 use vars qw($VERSION $AUTOLOAD);
 
-$VERSION = "1.01";
+$VERSION = "1.02";
 
 my $_autoloaded_functions = {};
 
 my (@packageslist) =(
 	'Lingua::Stem::De',
 	'Lingua::Stem::En',
+	'Lingua::Stem::Fr',
 	'Lingua::Stem::Da',
 	'Lingua::Stem::Gl',
 	'Lingua::Stem::It',

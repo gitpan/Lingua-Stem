@@ -2,10 +2,6 @@ Lingua::Stem
 
  Provides word stemming algorithms localized by language.
 
-Current only 'En' (English) is supported, but hooks for
-other languages are in place. The next to be added 
-will be 'De' (German).
-
 To install:
 
 perl Makefile.PL
