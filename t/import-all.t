@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 use strict;
 use lib ('./blib','../lib','./lib');
@@ -42,7 +42,8 @@ exit;
 sub test1 {
 	my $original_locale  = get_locale;
 
-	my @test_locales = ('En','En-Us','En-Uk','En-Broken');
+	my @test_locales = qw(En En-Us En-Uk En-Broken Da De Gl It No Pt Sv);
+
 	foreach my $test_locale (@test_locales,$test_locales[0]) {
 		set_locale($test_locale);
 		my $new_locale  = get_locale;
@@ -67,7 +68,21 @@ sub test2 {
 	my $original_locale  = get_locale;
 
 	my $test_locales = {
-	           'En' => { 
+	        'Da' => {
+                  -words => [qw(abiezriternes aftenafgrødeofferets bortskaffer)],
+                 -expect => [qw(abiezrit      aftenafgrødeof       bortskaf)],
+				  },
+	        'De' => {
+                  -words => [qw( infrastrukturelle Verfall gesellschaftlichen Organisation DDR
+                                  führte verhärteten isolationistischen Politik reformerische
+                                  Anforderungen Mitte Jahre Krisenpotential
+                            )],
+                 -expect => [qw(infrastrukturell Verfall gesellschaftlich Organisation DDR
+                              führen verhärten isolationistisch Politik reformerisch
+                              Anforderung Mitte Jahr Krisenpotential
+                            )],
+				  },
+	        'En' => { 
                   -words => [qw(The lazy red dogs quickly run over the gurgling brook)],
                  -expect => [qw(the lazi red dog quickli run over the gurgl brook)],
 				  },
@@ -78,6 +93,32 @@ sub test2 {
 	        'En-Uk' => {
                   -words => [qw(The lazy red dogs quickly run over the gurgling brook)],
                  -expect => [qw(the lazi red dog quickli run over the gurgl brook)],
+				  },
+	        'It' => {
+                  -words => [qw(programma   programmi   programmare   programmazione
+                                gatto       gatta       gatti         gatte
+                                abbandonare abbandonato abbandonavamo abbandonai
+                            )],
+                 -expect => [qw(programm  programm  programm    programm
+                                gatt      gatt      gatt        gatt
+                                abbandon  abbandon  abbandon    abbandon
+                                )],
+				  },
+	        'Pt' => {
+                  -words => [qw(bons chilena pezinho existencialista beberiam)],
+                 -expect => [qw(bom chilen pe exist beb)],
+				  },
+	        'Gl' => {
+                  -words => [qw(bons chilena cazola preconceituoso chegou)],
+                 -expect => [qw(bon chilen caz preconceit cheg)],
+				  },
+	        'No' => {
+                  -words => [qw(administrasjonsdepartementet datainnsamlingsmetode)],
+                 -expect => [qw(administrasjonsdepartement   datainnsamlingsmetod)],
+				  },
+	        'Sv' => {
+                  -words => [qw(bedröfvelsens)],
+                 -expect => [qw(bedröfv)],
 				  },
 	};
 	my @locales = sort keys %$test_locales;

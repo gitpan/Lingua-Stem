@@ -1,9 +1,16 @@
 MANIFEST
 Makefile.PL
 README
+Changes
 lib/Lingua/Stem.pm
 lib/Lingua/Stem/AutoLoader.pm
+lib/Lingua/Stem/Da.pm
+lib/Lingua/Stem/De.pm
 lib/Lingua/Stem/En.pm
 lib/Lingua/Stem/EnBroken.pm
+lib/Lingua/Stem/Gl.pm
+lib/Lingua/Stem/No.pm
+lib/Lingua/Stem/Pt.pm
+lib/Lingua/Stem/Sv.pm
 t/import-all.t
 t/object.t

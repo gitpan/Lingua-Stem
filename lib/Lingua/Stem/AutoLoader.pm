@@ -4,7 +4,7 @@ package Lingua::Stem::AutoLoader;
 
 =head1 NAME
 
-Lingua::Stem::AutoLoader - A manager for autoloading Lingua::Stem modules 
+Lingua::Stem::AutoLoader - A manager for autoloading Lingua::Stem modules
 
 =head1 SYNOPSIS
 
@@ -14,17 +14,42 @@ use Lingua::Stem::AutoLoader;
 
 Sets up the autoloader to load the modules in the Lingua::Stem system on demand.
 
+ Lingua::Stem::Da - Danish
+ Lingua::Stem::De - German
+ Lingua::Stem::En - English
+ Lingua::Stem::Gl - Galician
+ Lingua::Stem::It - Italian
+ Lingua::Stem::No - Norwegian
+ Lingua::Stem::Pt - Portuguese
+ Lingua::Stem::Sv - Swedish
+
+=head1 CHANGES
+
+ 1.01 2003.04.05 - Added 'Lingua::Stem::De',   'Lingua::Stem::Da',
+                         'Lingua::Stem::Gl',   'Lingua::Stem::It',
+                         'Lingua::Stem::No',   'Lingua::Stem::Pt',
+                         'Lingua::Stem::Sv',
+
+                   to the list of autoloaded modules.
+
 =cut
 
 use strict;
 use vars qw($VERSION $AUTOLOAD);
 
-$VERSION = "1.00";
+$VERSION = "1.01";
 
 my $_autoloaded_functions = {};
 
 my (@packageslist) =(
+	'Lingua::Stem::De',
 	'Lingua::Stem::En',
+	'Lingua::Stem::Da',
+	'Lingua::Stem::Gl',
+	'Lingua::Stem::It',
+	'Lingua::Stem::No',
+	'Lingua::Stem::Pt',
+	'Lingua::Stem::Sv',
 	'Lingua::Stem::EnBroken',
 );
 
@@ -60,7 +85,7 @@ if ($@ ne '') {
 
 =head1 COPYRIGHT
 
-Copyright 1999, Benjamin Franz (<URL:http://www.nihongo.org/snowhare/>) and 
+Copyright 1999, Benjamin Franz (<URL:http://www.nihongo.org/snowhare/>) and
 FreeRun Technologies, Inc. (<URL:http://www.freeruntech.com/>). All Rights Reserved.
 This software may be copied or redistributed under the same terms as Perl itelf.
 

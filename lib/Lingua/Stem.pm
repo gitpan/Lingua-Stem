@@ -3,23 +3,24 @@ package Lingua::Stem;
 # $RCSfile: Stem.pm,v $ $Revision: 1.2 $ $Date: 1999/06/16 17:45:28 $ $Author: snowhare $
 
 #######################################################################
-# Initial POD Documentation 
+# Initial POD Documentation
 #######################################################################
 
 =head1 NAME
 
-Lingua::Stem - Stemming of words  
+Lingua::Stem - Stemming of words
 
 =head1 SYNOPSIS
 
     use Lingua::Stem qw(stem);
-    my $stems   = stem(@words);
+    my $stemmmed_words_anon_array   = stem(@words);
 
     or for the OO inclined,
 
     use Lingua::Stem;
     my $stemmer = Lingua::Stem->new(-locale => 'EN-UK');
-    my $stems   = $stemmer->stem(@words);
+    $stemmer->stem_caching({ -level => 2 });
+    my $stemmmed_words_anon_array   = $stemmer->stem(@words);
 
 =head1 DESCRIPTION
 
@@ -29,26 +30,46 @@ locale.
 
 You can import some or all of the class methods.
 
-use Lingua::Stem qw (stem clear_stem_cache stem_caching 
-                     add_exceptions delete_exceptions 
-                     get_exceptions set_locale get_locale 
+use Lingua::Stem qw (stem clear_stem_cache stem_caching
+                     add_exceptions delete_exceptions
+                     get_exceptions set_locale get_locale
                      :all :locale :exceptions :stem :caching);
 
- :all        - imports  stem add_exceptions delete_exceptions get_exceptions 
+ :all        - imports  stem add_exceptions delete_exceptions get_exceptions
                set_locale get_locale
  :stem       - imports  stem
  :caching    - imports  stem_caching clear_stem_cache
  :locale     - imports  set_locale get_locale
  :exceptions - imports  add_exceptions delete_exceptions get_exceptions
 
+Currently supported locales are:
+
+      EN          - English (also EN-US and EN-UK)
+      DA          - Danish
+      DE          - German
+      GL          - Galician
+      IT          - Italian
+      NO          - Norwegian
+      PT          - Portuguese
+      SV          - Swedish
+
+If you have the memory and lots of stemming to do,
+I _strongly_ suggest using cache level 2 and processing
+lists in 'big chunks' (long lists) for best performance.
+
 =head1 CHANGES
+
+ 0.60 2003.04.05 - Added more locales by wrappering various stemming
+                   implementations. Documented currently supported
+                   list of locales.
 
  0.50 2000.09.14 - Fixed major implementation error. Starting with
                    version 0.30 I forgot to include rulesets 2,3 and 4
                    for Porter's algorithm. The resulting stemming results
                    were very poor. Thanks go to <csyap@netfision.com>
-                   for bringing the problem to my attention. Unfortunately,
-                   the fix inherently generates *different*
+                   for bringing the problem to my attention.
+                   
+                   Unfortunately, the fix inherently generates *different*
                    stemming results than 0.30 and 0.40 did. If you
                    need identically broken output - use locale 'en-broken'.
 
@@ -61,15 +82,15 @@ use Lingua::Stem qw (stem clear_stem_cache stem_caching
                    Jim Richardson <jimr@maths.usyd.edu.au>
                    Aliased 'en-us' and 'en-uk' to 'en'
                    Fixed 'SYNOPSIS' to correct return value
-                   type for stemmed words (SYNOPIS error spotted 
+                   type for stemmed words (SYNOPIS error spotted
                    by <Arved_37@chebucto.ns.ca>)
 
  0.20 1999.06.15 - Changed to '.pm' module, moved into Lingua:: namespace,
-                   added OO interface, optionalized the export of routines 
+                   added OO interface, optionalized the export of routines
                    into the caller's namespace, added named parameter
                    initialization, stemming exceptions, autoloaded
                    locale support and isolated case flattening to
-                   localized stemmers prevent i18n problems later. 
+                   localized stemmers prevent i18n problems later.
 
                    Input and output text are assumed to be in UTF8
                    encoding (no operational impact right now, but
@@ -89,7 +110,7 @@ use Lingua::Stem::AutoLoader;
 use vars qw (@ISA @EXPORT_OK %EXPORT_TAGS @EXPORT $VERSION);
 
 BEGIN {
-    $VERSION     = '0.50';
+    $VERSION     = '0.60';
     @ISA         = qw (Exporter);
     @EXPORT      = ();
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching add_exceptions delete_exceptions get_exceptions set_locale get_locale);
@@ -107,21 +128,50 @@ my $defaults = {
       -stem_caching => \&Lingua::Stem::En::stem_caching,
   -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
         -exceptions => {},
-      -known_locales => { 'en' => { -stemmer => \&Lingua::Stem::En::stem, 
+      -known_locales => {
+                          'da' => { -stemmer => \&Lingua::Stem::Da::stem,
+                               -stem_caching => \&Lingua::Stem::Da::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::Da::clear_stem_cache,
+                           },
+                          'de' => { -stemmer => \&Lingua::Stem::De::stem,
+                               -stem_caching => \&Lingua::Stem::De::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::De::clear_stem_cache,
+                           },
+                          'en' => { -stemmer => \&Lingua::Stem::En::stem,
                                -stem_caching => \&Lingua::Stem::En::stem_caching,
                            -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
                            },
-                       'en-us' => { -stemmer => \&Lingua::Stem::En::stem, 
+                       'en-us' => { -stemmer => \&Lingua::Stem::En::stem,
                                -stem_caching => \&Lingua::Stem::En::stem_caching,
                            -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
                            },
-                       'en-uk' => { -stemmer => \&Lingua::Stem::En::stem, 
+                       'en-uk' => { -stemmer => \&Lingua::Stem::En::stem,
                                -stem_caching => \&Lingua::Stem::En::stem_caching,
                            -clear_stem_cache => \&Lingua::Stem::En::clear_stem_cache,
                            },
-                       'en-broken' => { -stemmer => \&Lingua::Stem::En_Broken::stem, 
+                   'en-broken' => { -stemmer => \&Lingua::Stem::En_Broken::stem,
                                -stem_caching => \&Lingua::Stem::En_Broken::stem_caching,
                            -clear_stem_cache => \&Lingua::Stem::En_Broken::clear_stem_cache,
+                           },
+                          'gl' => { -stemmer => \&Lingua::Stem::Gl::stem,
+                               -stem_caching => \&Lingua::Stem::Gl::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::Gl::clear_stem_cache,
+                           },
+                          'it' => { -stemmer => \&Lingua::Stem::It::stem,
+                               -stem_caching => \&Lingua::Stem::It::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::It::clear_stem_cache,
+                           },
+                          'no' => { -stemmer => \&Lingua::Stem::No::stem,
+                               -stem_caching => \&Lingua::Stem::No::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::No::clear_stem_cache,
+                           },
+                          'pt' => { -stemmer => \&Lingua::Stem::Pt::stem,
+                               -stem_caching => \&Lingua::Stem::Pt::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::Pt::clear_stem_cache,
+                           },
+                          'sv' => { -stemmer => \&Lingua::Stem::Sv::stem,
+                               -stem_caching => \&Lingua::Stem::Sv::stem_caching,
+                           -clear_stem_cache => \&Lingua::Stem::Sv::clear_stem_cache,
                            },
                    },
     };
@@ -145,8 +195,11 @@ of the locale to be used for stemming.
 
 Examples:
 
-  # By default the locale is us-en 
+  # By default the locale is en
   $us_stemmer = Lingua::Stem->new;
+
+  # Turn on the cache
+  $us_stemmer->stem_caching({ -level => 2 });
 
   # Overriding the default for a specific instance
   $uk_stemmer = Lingua::Stem->new({ -locale => 'en-uk' });
@@ -197,25 +250,24 @@ sub new {
 
 =item set_locale($locale);
 
-Sets the locale to one of the recognized locales. Currently,
-'en', 'en-us' and 'en-uk' are the only recognized locales. All
+Sets the locale to one of the recognized locales.
 locale identifiers are converted to lowercase.
 
-Called as a class method, it changes the default locale for all 
+Called as a class method, it changes the default locale for all
 subseqently generated object instances.
 
-Called as an instance method, it only changes the locale for 
-that particular instance. 
+Called as an instance method, it only changes the locale for
+that particular instance.
 
 'croaks' if passed an unknown locale.
 
 Examples:
 
- # Change default locale 
- Lingua::Stem::set_locale('en-uk'); # UK's spellings 
+ # Change default locale
+ Lingua::Stem::set_locale('en-uk'); # UK's spellings
 
  # Change instance locale
- $self->set_locale('en-us');  # US's spellings 
+ $self->set_locale('en-us');  # US's spellings
 
 =back
 
@@ -350,7 +402,7 @@ from either the defaults for the class or from the instance.
  # Deletion of exceptions from instance
  $stemmer->delete_exceptions('smaug','sauron','gollum');
 
- # Deletion of all class default exceptions 
+ # Deletion of all class default exceptions
  delete_exceptions;
 
  # Deletion of all exceptions from instance
@@ -365,7 +417,7 @@ sub delete_exceptions {
 
     my ($exception_list,$exceptions);
     if ($#_ == -1) {
-        $defaults->{-exceptions} = {};    
+        $defaults->{-exceptions} = {};
         return;
     }
     my $reference =ref $_[0];
@@ -400,7 +452,7 @@ sub delete_exceptions {
 
 =item get_exceptions;
 
-As a class method with no parameters it returns all the default exceptions 
+As a class method with no parameters it returns all the default exceptions
 as an anonymous hash of 'exception' => 'replace with' pairs.
 
 Example:
@@ -415,7 +467,7 @@ If a parameter specifies an undefined 'exception', the value is set to undef.
  # Returns class default exceptions for 'emily' and 'george'
  $exceptions = Lingua::Stem::get_exceptions('emily','george');
 
-As an instance method, with no parameters it returns the currently active 
+As an instance method, with no parameters it returns the currently active
 exceptions for the instance.
 
  # Returns all instance exceptions
@@ -473,7 +525,7 @@ list of words.
 Example:
 
     # Default settings applied
-    my $stemmed_words = Lingua::Stem::stem(@words);
+    my $anon_array_of_stemmed_words = Lingua::Stem::stem(@words);
 
 Called as an instance method, it applies the instance's settings
 and stems the list of passed words, returning an anonymous
@@ -483,6 +535,9 @@ list of words.
    # Instance's settings applied
    my $stemmed_words = $stemmer->stem(@words);
 
+The stemmer performs best when handed long lists of words
+rather than one word at a time. The cache also provides
+a huge speed up if you are processing lots of text.
 =back
 
 =cut
@@ -501,7 +556,7 @@ sub stem {
         $stemmer    = $defaults->{-stemmer};
         $locale     = $defaults->{-locale};
     }
-    &$stemmer({ -words => \@_, 
+    &$stemmer({ -words => \@_,
                -locale => $locale,
            -exceptions => $exceptions });
 }
@@ -547,14 +602,14 @@ a class method or an instance method.
 
     stem_caching({ -level => 1 });
 
-For the sake of maximum compatibility with previous versions, 
+For the sake of maximum compatibility with previous versions,
 stem caching is set to '-level => 0' initially.
 
 '-level' definitions
 
  '0' means 'no caching'. This is the default level.
 
- '1' means 'cache per run'. This caches stemming results during each 
+ '1' means 'cache per run'. This caches stemming results during each
     call to 'stem'.
 
  '2' means 'cache indefinitely'. This caches stemming results until
@@ -563,6 +618,9 @@ stem caching is set to '-level => 0' initially.
 stem caching is global to the locale. If you turn on stem caching for one
 instance of a locale stemmer, all instances using the same locale will have it
 turned on as well.
+
+I STRONGLY suggest turning caching on if you have enough memory and
+are processing a lot of data.
 
 =back
 
@@ -581,22 +639,24 @@ sub stem_caching {
 }
 
 #######################################################################
-# Terminal POD Documentation 
+# Terminal POD Documentation
 #######################################################################
+
+=head1 VERSION
+
+ 0.60 2003.04.05
 
 =head1 NOTES
 
-This is version 0.40. 
-
-It started with the 'Text::Stem' module which has been adapted into 
-a more general framework and moved into the more 
+It started with the 'Text::Stem' module which has been adapted into
+a more general framework and moved into the more
 language oriented 'Lingua' namespace and re-organized to support a OOP
-interface as well as switch core 'En' locale stemmers. 
+interface as well as switch core 'En' locale stemmers.
 
 Version 0.40 added a cache for stemmed words. This can provide up
-to a 4 fold performance improvement.
+to a several fold performance improvement.
 
-Organization is such that extending this module to any number 
+Organization is such that extending this module to any number
 of languages should be direct and simple.
 
 Case flattening is a function of the language, so the 'exceptions'
@@ -606,17 +666,30 @@ family stemming, use lower case words, only, for exceptions.
 =head1 AUTHORS
 
  Benjamin Franz <snowhare@nihongo.org>
- Jim Richardson <imr@maths.usyd.edu.au>
+ Jim Richardson  <imr@maths.usyd.edu.au>
+
+=head1 CREDITS
+
+ Jim Richardson  <imr@maths.usyd.edu.au>
+ Ulrich Pfeifer  <pfeifer@ls6.informatik.uni-dortmund.de>
+ Aldo Calpini    <dada@perl.it>
+ xern            <xern@cpan.org>
+ Ask Solem Hoel  <ask@unixmonks.net>
+ Dennis Haney i  <davh@davh.dk>
 
 =head1 SEE ALSO
 
- Lingua::Stem::En Lingua:Stem::En_Us Lingua::Stem::En_Uk
+ Lingua::Stem::En            Lingua::Stem::En            Lingua::Stem::Da
+ Lingua::Stem::De            Lingua::Stem::Gl            Lingua::Stem::No
+ Linuta::Stem::Pt            Linuta::Stem::Sv            Lingua::Stem::It
+ Text::German                Lingua::PT::Stemmer         Lingua::GL::Stemmer
+ Lingua::Stem::Snowball::No  Lingua::Stem::Snowball::Se  Lingua::Stem::Snowball::Da
 
 =head1 COPYRIGHT
 
-Copyright 1999 
+Copyright 1999-2003
 
-FreeRun Technologies, Inc (FreeRun), 
+FreeRun Technologies, Inc (FreeRun),
 Jim Richardson, University of Sydney <imr@maths.usyd.edu.au>
 and Benjamin Franz <snowhare@nihongo.org>. All rights reserved.
 
@@ -629,7 +702,7 @@ None known.
 
 =head1 TODO
 
-Add more languages. Specifically integrate Text::German for 'de' locale.
+Add more languages. Extend regression tests.
 
 =cut
 
