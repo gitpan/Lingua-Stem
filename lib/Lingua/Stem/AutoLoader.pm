@@ -47,7 +47,7 @@ $VERSION = "1.02";
 
 my $_autoloaded_functions = {};
 
-my (@packageslist) =(
+my @packageslist = (
 	'Lingua::Stem::De',
 	'Lingua::Stem::En',
 	'Lingua::Stem::Fr',
@@ -60,7 +60,7 @@ my (@packageslist) =(
 	'Lingua::Stem::EnBroken',
 );
 
-my ($autoloader) =<<'EOF';
+my $autoloader =<<'EOF';
 package ----packagename----;
 use vars qw($AUTOLOAD);
 sub AUTOLOAD {
@@ -78,14 +78,14 @@ sub AUTOLOAD {
 }
 
 EOF
-my ($fullload) ='';
-my ($packagename);
-foreach $packagename (@packageslist) {
+
+my $fullload = '';
+foreach my $packagename (@packageslist) {
 	my ($loader) = $autoloader;
 	$loader =~ s/(----packagename----)/$packagename/;
 	$fullload .= $loader;
 }
-eval ($fullload);
+eval $fullload;
 if ($@ ne '') {
    die ("Failed to initialize AUTOLOAD: $@\n");
 }

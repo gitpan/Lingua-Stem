@@ -56,6 +56,12 @@ support for the British -ise suffix.
 
  2003.09.28 - 2.13 Corrected documentation error pointed out by Simon Cozens.
 
+ 2005.11.20 - 2.14 Changed rule declarations to conform to Perl style convention
+              for 'private' subroutines. Changed Exporter invokation to more
+              portable 'require' vice 'use'.
+
+ 2006.02.14 - 2.15 Added ability to pass word list by 'handle' for in-place stemming.
+
 =cut
 
 #######################################################################
@@ -63,19 +69,20 @@ support for the British -ise suffix.
 #######################################################################
 
 use strict;
-use Exporter;
+require Exporter;
 use Carp;
 use vars qw (@ISA @EXPORT_OK @EXPORT %EXPORT_TAGS $VERSION);
 BEGIN {
+    $VERSION     = "2.14";
     @ISA         = qw (Exporter);
     @EXPORT      = ();
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching);
     %EXPORT_TAGS = ();
 }
-$VERSION = "2.13";
 
 my $Stem_Caching  = 0;
 my $Stem_Cache    = {};
+my %Stem_Cache2   = ();
 
 #
 #V  Porter.pm V2.11 25 Aug 2000 stemming cache  
@@ -143,10 +150,30 @@ an anonymous array reference to the stemmed words.
 
 Example:
 
+  my @words         = ( 'wordy', 'another' );
   my $stemmed_words = Lingua::Stem::En::stem({ -words => \@words,
                                               -locale => 'en',
                                           -exceptions => \%exceptions,
                           });
+
+If the first element of @words is a list reference, then the stemming is performed 'in place'
+on that list (modifying the passed list directly instead of copying it to a new array).
+
+This is only useful if you do not need to keep the original list. If you B<do> need to keep
+the original list, use the normal semantic of having 'stem' return a new list instead - that
+is faster than making your own copy B<and> using the 'in place' semantics since the primary
+difference between 'in place' and 'by value' stemming is the creation of a copy of the original
+list.  If you B<don't> need the original list, then the 'in place' stemming is about 60% faster.
+
+Example of 'in place' stemming:
+
+  my $words         = [ 'wordy', 'another' ];
+  my $stemmed_words = Lingua::Stem::En::stem({ -words => \$words,
+                          -locale => 'en',
+                      -exceptions => \%exceptions,
+                      });
+
+The 'in place' mode returns a reference to the original list with the words stemmed.
 
 =back
 
@@ -165,9 +192,13 @@ sub stem {
     my $locale     = 'en';
     my $exceptions = {};
     foreach (keys %$parm_ref) {
-        my $key = lc ($_);
+        my $key   = lc ($_);
+        my $value = $parm_ref->{$key};
         if ($key eq '-words') {
-            @$words = @{$parm_ref->{$key}};
+            @$words = @$value;
+            if (ref($words->[0]) eq 'ARRAY'){
+                $words = $words->[0];
+            }
         } elsif ($key eq '-exceptions') {
             $exceptions = $parm_ref->{$key};
         } elsif ($key eq '-locale') {
@@ -178,10 +209,17 @@ sub stem {
     }
     
     local( $_ );
+
     foreach (@$words) {
 
         # Flatten case
         $_ = lc $_;
+
+        # Check against cache of stemmed words
+        if (exists $Stem_Cache2{$_}) {
+            $_ = $Stem_Cache2{$_}; 
+            next;
+        }
 
         # Check against exceptions list
         if (exists $exceptions->{$_}) {
@@ -189,12 +227,7 @@ sub stem {
 			next;
 		}
 
-        # Check against cache of stemmed words
         my $original_word = $_;
-        if ($Stem_Caching && exists $Stem_Cache->{$original_word}) {
-            $_ = $Stem_Cache->{$original_word}; 
-            next;
-        }
 
         # Step 0 - remove punctuation
         s/'s$//; s/^[^a-z]+//; s/[^a-z]+$//;
@@ -245,15 +278,15 @@ sub stem {
     
             #  Step 3: double and triple suffices, etc (part 2)
 
-            &$sub if defined &{ $sub = 'S2' . substr( $_, 0, 3 ) };
+            &$sub if defined &{ $sub = '_S2' . substr( $_, 0, 3 ) };
     
             #  Step 3: double and triple suffices, etc (part 2)
     
-            &$sub if defined &{ $sub = 'S3' . substr( $_, 0, 3 ) };
+            &$sub if defined &{ $sub = '_S3' . substr( $_, 0, 3 ) };
     
             #  Step 4: single suffices on polysyllables
     
-            &$sub if defined &{ $sub = 'S4' . substr( $_, 0, 2 ) };
+            &$sub if defined &{ $sub = '_S4' . substr( $_, 0, 2 ) };
    
         }
         #  Step 5a: tidy up final e -- probate->probat, rate->rate; cease->ceas
@@ -275,82 +308,159 @@ sub stem {
     
         $_ = scalar( reverse $_ );
 
-        $Stem_Cache->{$original_word} = $_ if $Stem_Caching;
+        $Stem_Cache2{$original_word} = $_ if $Stem_Caching;
     }
-    $Stem_Cache = {} if ($Stem_Caching < 2);
+    %Stem_Cache2 = () if ($Stem_Caching < 2);
     
     return $words;
 }
 
 ##############################################################
+# Rule set 4
+
+sub _S4la {
+    #  SYLSYLal -> SYLSYL
+    s!^la($syl$syl)!$1!o;
+}
+
+sub _S4ec {
+    #  SYLSYL[ae]nce -> SYLSYL
+    s!^ecn[ae]($syl$syl)!$1!o;
+}
+
+sub _S4re {
+    #  SYLSYLer -> SYLSYL
+    s!^re($syl$syl)!$1!o;
+}
+
+sub _S4ci {
+    #  SYLSYLic -> SYLSYL
+    s!^ci($syl$syl)!$1!o;
+}
+
+sub _S4el {
+    #  SYLSYL[ai]ble -> SYLSYL
+    s!^elb[ai]($syl$syl)!$1!o;
+}
+
+sub _S4tn {
+    #  SYLSYLant -> SYLSYL, SYLSYLe?ment -> SYLSYL, SYLSYLent -> SYLSYL
+    s!^tn(a|e(me?)?)($syl$syl)!$3!o;
+}
+sub _S4no {
+    #  SYLSYL[st]ion -> SYLSYL[st]
+    s!^noi([st]$syl$syl)!$1!o;
+}
+
+sub _S4uo {
+    #  SYLSYLou -> SYLSYL e.g. homologou -> homolog
+    s!^uo($syl$syl)!$1!o;
+}
+
+sub _S4ms {
+    #  SYLSYLism -> SYLSYL
+    s!^msi($syl$syl)!$1!o;
+}
+
+sub _S4et {
+    #  SYLSYLate -> SYLSYL
+    s!^eta($syl$syl)!$1!o;
+}
+
+sub _S4it {
+    #  SYLSYLiti -> SYLSYL
+    s!^iti($syl$syl)!$1!o;
+}
+
+sub _S4su {
+    #  SYLSYLous -> SYLSYL
+    s!^suo($syl$syl)!$1!o;
+}
+
+sub _S4ev { 
+    #  SYLSYLive -> SYLSYL
+    s!^evi($syl$syl)!$1!o;
+}
+
+sub _S4ez {
+    #  SYLSYLize -> SYLSYL
+    s!^ezi($syl$syl)!$1!o;
+}
+
+sub _S4es {
+    #  SYLSYLise -> SYLSYL **
+    s!^esi($syl$syl)!$1!o;
+}
+
+##############################################################
 # Rule set 2
 
-sub S2lan {
+sub _S2lan {
     #  SYLational -> SYLate,	SYLtional -> SYLtion
     s!^lanoita($syl)!eta$1!o || s!^lanoit($syl)!noit$1!o;
 }
 
-sub S2icn {
+sub _S2icn {
     #  SYLanci -> SYLance, SYLency ->SYLence
     s!^icn([ae]$syl)!ecn$1!o;
 }
 
-sub S2res {
+sub _S2res {
     #  SYLiser -> SYLise **
-    &S2rez;
+    &_S2rez;
 }
 
-sub S2rez {
+sub _S2rez {
     #  SYLizer -> SYLize
     s!^re(.)i($syl)!e$1i$2!o;
 }
 
-sub S2ilb {
+sub _S2ilb {
     #  SYLabli -> SYLable, SYLibli -> SYLible ** (e.g. incredibli)
     s!^ilb([ai]$syl)!elb$1!o;
 }
 
-sub S2ill {
+sub _S2ill {
     #  SYLalli -> SYLal
     s!^illa($syl)!la$1!o;
 }
 
-sub S2ilt {
+sub _S2ilt {
     #  SYLentli -> SYLent
     s!^iltne($syl)!tne$1!o
 }
 
-sub S2ile {
+sub _S2ile {
     #  SYLeli -> SYLe
     s!^ile($syl)!e$1!o;
 }
 
-sub S2ils {
+sub _S2ils {
     #  SYLousli -> SYLous
     s!^ilsuo($syl)!suo$1!o;
 }
 
-sub S2noi {
+sub _S2noi {
     #  SYLization -> SYLize, SYLisation -> SYLise**, SYLation -> SYLate
     s!^noita([sz])i($syl)!e$1i$2!o || s!^noita($syl)!eta$1!o;
 }
 
-sub S2rot {
+sub _S2rot {
     #  SYLator -> SYLate
     s!^rota($syl)!eta$1!o;
 }
 
-sub S2msi {
+sub _S2msi {
     #  SYLalism -> SYLal
     s!^msila($syl)!la$1!o;
 }
 
-sub S2sse {
+sub _S2sse {
     #  SYLiveness  -> SYLive, SYLfulness -> SYLful, SYLousness -> SYLous
     s!^ssen(evi|luf|suo)($syl)!$1$2!o;
 }
 
-sub S2iti {
+sub _S2iti {
     #  SYLaliti -> SYLal, SYLiviti -> SYLive, SYLbiliti ->SYLble
     s!^iti(la|lib|vi)($syl)! ( $1 eq 'la' ? 'la' : $1 eq 'lib' ? 'elb' : 'evi' )
 	. $2 !eo;
@@ -359,122 +469,46 @@ sub S2iti {
 ##############################################################
 # Rule set 3
 
-sub S3eta {
+sub _S3eta {
     #  SYLicate -> SYLic
     s!^etaci($syl)!ci$1!o;
 }
 
-sub S3evi {
+sub _S3evi {
     #  SYLative -> SYL
     s!^evita($syl)!$1!o;
 }
 
-sub S3ezi
+sub _S3ezi
 {
     #  SYLalize -> SYLal
     s!^ezila($syl)!la$1!o;
 }
 
-sub S3esi {
+sub _S3esi {
     #  SYLalise -> SYLal **
     s!^esila($syl)!la$1!o;
 }
 
-sub S3iti {
+sub _S3iti {
     #  SYLiciti -> SYLic
     s!^itici($syl)!ci$1!o;
 }
 
-sub S3lac {
+sub _S3lac {
     #  SYLical -> SYLic
     s!^laci($syl)!ci$1!o;
 }
-sub S3luf {
+sub _S3luf {
     #  SYLful -> SYL
     s!^luf($syl)!$1!o;
 }
 
-sub S3sse {
+sub _S3sse {
     #  SYLness -> SYL
     s!^ssen($syl)!$1!o;
 }
 
-##############################################################
-# Rule set 4
-
-sub S4la {
-    #  SYLSYLal -> SYLSYL
-    s!^la($syl$syl)!$1!o;
-}
-
-sub S4ec {
-    #  SYLSYL[ae]nce -> SYLSYL
-    s!^ecn[ae]($syl$syl)!$1!o;
-}
-
-sub S4re {
-    #  SYLSYLer -> SYLSYL
-    s!^re($syl$syl)!$1!o;
-}
-
-sub S4ci {
-    #  SYLSYLic -> SYLSYL
-    s!^ci($syl$syl)!$1!o;
-}
-
-sub S4el {
-    #  SYLSYL[ai]ble -> SYLSYL
-    s!^elb[ai]($syl$syl)!$1!o;
-}
-
-sub S4tn {
-    #  SYLSYLant -> SYLSYL, SYLSYLe?ment -> SYLSYL, SYLSYLent -> SYLSYL
-    s!^tn(a|e(me?)?)($syl$syl)!$3!o;
-}
-sub S4no {
-    #  SYLSYL[st]ion -> SYLSYL[st]
-    s!^noi([st]$syl$syl)!$1!o;
-}
-
-sub S4uo {
-    #  SYLSYLou -> SYLSYL e.g. homologou -> homolog
-    s!^uo($syl$syl)!$1!o;
-}
-
-sub S4ms {
-    #  SYLSYLism -> SYLSYL
-    s!^msi($syl$syl)!$1!o;
-}
-
-sub S4et {
-    #  SYLSYLate -> SYLSYL
-    s!^eta($syl$syl)!$1!o;
-}
-
-sub S4it {
-    #  SYLSYLiti -> SYLSYL
-    s!^iti($syl$syl)!$1!o;
-}
-
-sub S4su {
-    #  SYLSYLous -> SYLSYL
-    s!^suo($syl$syl)!$1!o;
-}
-
-sub S4ev { 
-    #  SYLSYLive -> SYLSYL
-    s!^evi($syl$syl)!$1!o;
-}
-
-sub S4ez {
-    #  SYLSYLize -> SYLSYL
-    s!^ezi($syl$syl)!$1!o;
-}
-
-sub S4es {
-    #  SYLSYLise -> SYLSYL **
-    s!^esi($syl$syl)!$1!o;
-}
 
 ##############################################################
 
@@ -509,6 +543,9 @@ sub stem_caching {
             croak(__PACKAGE__ . "::stem_caching() - Legal values are '0','1' or '2'. '$caching_level' is not a legal value");
         }
         $Stem_Caching = $caching_level;
+        if ($caching_level < 2) {
+            %Stem_Cache2 = ();
+        }
     }
     return $Stem_Caching;
 }    
@@ -526,7 +563,7 @@ Clears the cache of stemmed words
 =cut
 
 sub clear_stem_cache {
-    $Stem_Cache = {};
+    %Stem_Cache2 = ();
 }
 
 ##############################################################

@@ -8,7 +8,12 @@
 #
 
 use strict;
+use warnings;
+
+use lib qw(../lib);
+
 use Lingua::Stem qw ();
+use Lingua::Stem::En qw ();
 use Time::HiRes qw(gettimeofday tv_interval);
 
 my $snowball = eval { require Lingua::Stem::Snowball; };
@@ -146,6 +151,38 @@ if ($snowball) {
     Lingua::Stem::stem_caching({ -level => 2});
     my $start_time = [gettimeofday];
     my ($result) = Lingua::Stem::stem(@big_word_list);
+    my $elapsed = tv_interval($start_time);
+    printf  "Lingua::Stem, one batch, cache level 2:                 %8s words/second\n", int($n/$elapsed);
+}
+
+# Word by word, Lingua::Stem, with caching
+{
+    Lingua::Stem::En::stem_caching({ -level => 2});
+    my $start_time = [gettimeofday];
+    for (my $i = 0; $i < $loops; $i++) { 
+        foreach my $w (@word_list) {
+            my ($result) = Lingua::Stem::En::stem($w);
+        }
+    }
+    my $elapsed = tv_interval($start_time);
+    printf  "Lingua::Stem, one word at a time, cache level 2:        %8s words/second\n", int($n/$elapsed);
+}
+
+# Processed in batches with caching, Lingua::Stem
+{
+    Lingua::Stem::En::stem_caching({ -level => 2});
+    my $start_time = [gettimeofday];
+    for (my $i = 0; $i < $loops; $i++) { 
+        my ($result) = Lingua::Stem::En::stem(@word_list);
+    }
+    my $elapsed = tv_interval($start_time);
+    printf  "Lingua::Stem, %6s word batches, cache level 2:       %8s words/second\n", $n_words, int($n/$elapsed);
+}
+# Processed in one batch with caching, Lingua::Stem
+{
+    Lingua::Stem::En::stem_caching({ -level => 2});
+    my $start_time = [gettimeofday];
+    my ($result) = Lingua::Stem::En::stem(@big_word_list);
     my $elapsed = tv_interval($start_time);
     printf  "Lingua::Stem, one batch, cache level 2:                 %8s words/second\n", int($n/$elapsed);
 }

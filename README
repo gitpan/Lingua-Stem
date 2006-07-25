@@ -9,8 +9,14 @@ make
 make test
 make install
 
+Alternatively, if you have Module::Build installed,
+
+perl Build.PL
+./Build
+./Build test
+./Build install
+
 Type 'perldoc Lingua::Stem' after installation for the documentation 
-or go to <URL:http://www.nihongo.org/snowhare/utilities/modules/lingua-stem/>
 
 Copyright 1999, Benjamin Franz <snowhare@nihongo.org> 
 (<URL:http://www.nihongo.org/snowhare/>),

@@ -1,8 +1,13 @@
+Artistic_License.txt
+GPL_License.txt
+Build.PL
+Changes
+LICENSE
 MANIFEST
 Makefile.PL
 README
-Changes
 lib/Lingua/Stem.pm
+lib/Lingua/Stem.pod
 lib/Lingua/Stem/AutoLoader.pm
 lib/Lingua/Stem/Da.pm
 lib/Lingua/Stem/De.pm
@@ -12,8 +17,12 @@ lib/Lingua/Stem/Gl.pm
 lib/Lingua/Stem/No.pm
 lib/Lingua/Stem/Pt.pm
 lib/Lingua/Stem/Sv.pm
-t/import-all.t
-t/object.t
+t/01_import_all.t
+t/02_object.t
+t/97_distribution.t
+t/98_pod_coverage.t
+t/99_pod.t
 examples/benchmark-stemmers.pl
+examples/benchmark_stemmers.plx
 examples/voc.txt
-META.yml                                 Module meta-data (added by MakeMaker)
+META.yml

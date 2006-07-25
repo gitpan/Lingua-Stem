@@ -1,19 +1,59 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Lingua-Stem
-version:      0.81
-version_from: lib/Lingua/Stem.pm
-installdirs:  site
+---
+name: Lingua-Stem
+version: !!perl/hash:Module::Build::Version
+  original: 0.82
+  version:
+    - 0
+    - 820
+author:
+  - 'Benjamin Franz <snowhare@nihongo.org>'
+abstract: Stemming of words in various languages
+license: perl
+resources:
+  license: http://dev.perl.org/licenses/
 requires:
-    Lingua::GL::Stemmer:           0
-    Lingua::PT::Stemmer:           0
-    Lingua::Stem::Fr:              0.02
-    Lingua::Stem::It:              0
-    Lingua::Stem::Ru:              0
-    Lingua::Stem::Snowball::Da:    1.01
-    Lingua::Stem::Snowball::No:    1.00
-    Lingua::Stem::Snowball::Se:    1.01
-    Text::German:                  0
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+  Carp: 0
+  Lingua::GL::Stemmer: 0
+  Lingua::PT::Stemmer: 0
+  Lingua::Stem::Fr: 0.02
+  Lingua::Stem::It: 0
+  Lingua::Stem::Ru: 0
+  Lingua::Stem::Snowball::Da: 1.01
+  Lingua::Stem::Snowball::No: 1.00
+  Lingua::Stem::Snowball::Se: 1.01
+  Text::German: 0
+provides:
+  Lingua::Stem:
+    file: lib/Lingua/Stem.pm
+    version: 0.82
+  Lingua::Stem::AutoLoader:
+    file: lib/Lingua/Stem/AutoLoader.pm
+    version: 1.02
+  Lingua::Stem::Da:
+    file: lib/Lingua/Stem/Da.pm
+    version: 1.01
+  Lingua::Stem::De:
+    file: lib/Lingua/Stem/De.pm
+    version: 1.01
+  Lingua::Stem::En:
+    file: lib/Lingua/Stem/En.pm
+    version: 2.14
+  Lingua::Stem::EnBroken:
+    file: lib/Lingua/Stem/EnBroken.pm
+    version: 2.13
+  Lingua::Stem::Gl:
+    file: lib/Lingua/Stem/Gl.pm
+    version: 1.02
+  Lingua::Stem::No:
+    file: lib/Lingua/Stem/No.pm
+    version: 1.01
+  Lingua::Stem::Pt:
+    file: lib/Lingua/Stem/Pt.pm
+    version: 1.01
+  Lingua::Stem::Sv:
+    file: lib/Lingua/Stem/Sv.pm
+    version: 1.01
+generated_by: Module::Build version 0.2804
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2

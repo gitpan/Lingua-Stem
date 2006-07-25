@@ -7,9 +7,9 @@ use Lingua::Stem;
 my @do_tests=(1..3);
 
 my $test_subs = { 
-       1 => { -code => \&test1, -desc => 'locale    ' },
-       2 => { -code => \&test2, -desc => 'stem      ' },
-       3 => { -code => \&test3, -desc => 'exceptions' },
+       1 => { -code => \&test1, -desc => 'locale        ' },
+       2 => { -code => \&test2, -desc => 'stem          ' },
+       3 => { -code => \&test3, -desc => 'exceptions    ' },
 };
 print $do_tests[0],'..',$do_tests[$#do_tests],"\n";
 print STDERR "\n";

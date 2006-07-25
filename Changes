@@ -1,3 +1,6 @@
+        0.82 2006.07.23 - Added 'stem_in_place' to base package.
+                          Tweaks to documentation and build tests.
+
         0.81 2004.07.26 - Minor documentation tweak.
 
         0.80 2004.07.25 - Added support for Linuga::Stem::Ru
