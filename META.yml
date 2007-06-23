@@ -1,10 +1,6 @@
 ---
 name: Lingua-Stem
-version: !!perl/hash:Module::Build::Version
-  original: 0.82
-  version:
-    - 0
-    - 820
+version: 0.83
 author:
   - 'Benjamin Franz <snowhare@nihongo.org>'
 abstract: Stemming of words in various languages
@@ -25,7 +21,7 @@ requires:
 provides:
   Lingua::Stem:
     file: lib/Lingua/Stem.pm
-    version: 0.82
+    version: 0.83
   Lingua::Stem::AutoLoader:
     file: lib/Lingua/Stem/AutoLoader.pm
     version: 1.02
@@ -53,7 +49,7 @@ provides:
   Lingua::Stem::Sv:
     file: lib/Lingua/Stem/Sv.pm
     version: 1.01
-generated_by: Module::Build version 0.2804
+generated_by: Module::Build version 0.2807
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2

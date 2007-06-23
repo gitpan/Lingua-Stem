@@ -1,3 +1,9 @@
+unless ($ENV{'TEST_POD_COVERAGE'}) {
+    $|++;
+    print "1..0 # Skipped: To enable POD coverage test set TEST_POD_COVERAGE=1\n";
+    exit;
+}
+
 eval {
     require Test::More;
 };

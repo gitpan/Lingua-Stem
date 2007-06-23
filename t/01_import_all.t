@@ -100,16 +100,16 @@ sub test2 {
                   -words => [qw(fouillait fouilleront fouillent fouillez fortunées fortuné froidement)],
                  -expect => [qw(fouill    fouill      fouill     fouill  fortun    fortun  froid)],
 				  },
-	        'It' => {
-                  -words => [qw(programma   programmi   programmare   programmazione
-                                gatto       gatta       gatti         gatte
-                                abbandonare abbandonato abbandonavamo abbandonai
-                            )],
-                 -expect => [qw(programm  programm  programm    programm
-                                gatt      gatt      gatt        gatt
-                                abbandon  abbandon  abbandon    abbandon
-                                )],
-				  },
+#	        'It' => {
+#                  -words => [qw(programma   programmi   programmare   programmazione
+#                                gatto       gatta       gatti         gatte
+#                                abbandonare abbandonato abbandonavamo abbandonai
+#                            )],
+#                 -expect => [qw(programm  programm  programm    programm
+#                                gatt      gatt      gatt        gatt
+#                                abbandon  abbandon  abbandon    abbandon
+#                                )],
+#				  },
 	        'Pt' => {
                   -words => [qw(bons chilena pezinho existencialista beberiam)],
                  -expect => [qw(bom chilen pe exist beb)],

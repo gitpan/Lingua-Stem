@@ -121,6 +121,9 @@ distribution as benchmark_stemmers.plx.
 
 =head1 CHANGES
 
+ 0.83 2007.06.23 - Disabled Italian locale build tests due to
+                   changes in Lingua::Stem::It breaking the tests.
+
  0.82 2006.07.23 - Added 'stem_in_place' to base package.
                    Tweaks to documentation and build tests.
 
@@ -440,7 +443,7 @@ are processing a lot of data.
 
 =head1 VERSION
 
- 0.82 2006.07.23
+ 0.83 2007.06.23
 
 =head1 NOTES
 

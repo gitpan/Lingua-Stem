@@ -1,3 +1,7 @@
+        0.83 2007.06.23 - Disabled Italian locale tests due to changes
+                          in behavior of Lingua::Stem::It causing
+                          test breakage
+
         0.82 2006.07.23 - Added 'stem_in_place' to base package.
                           Tweaks to documentation and build tests.
 
