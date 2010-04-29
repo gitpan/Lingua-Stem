@@ -62,6 +62,7 @@ support for the British -ise suffix.
 
  2006.02.14 - 2.15 Added ability to pass word list by 'handle' for in-place stemming.
 
+ 2009.07.27   2.16 Documentation Fix
 =cut
 
 #######################################################################
@@ -73,7 +74,7 @@ require Exporter;
 use Carp;
 use vars qw (@ISA @EXPORT_OK @EXPORT %EXPORT_TAGS $VERSION);
 BEGIN {
-    $VERSION     = "2.14";
+    $VERSION     = "2.16";
     @ISA         = qw (Exporter);
     @EXPORT      = ();
     @EXPORT_OK   = qw (stem clear_stem_cache stem_caching);
@@ -168,7 +169,7 @@ list.  If you B<don't> need the original list, then the 'in place' stemming is a
 Example of 'in place' stemming:
 
   my $words         = [ 'wordy', 'another' ];
-  my $stemmed_words = Lingua::Stem::En::stem({ -words => \$words,
+  my $stemmed_words = Lingua::Stem::En::stem({ -words => [$words],
                           -locale => 'en',
                       -exceptions => \%exceptions,
                       });

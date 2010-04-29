@@ -1,3 +1,10 @@
+        0.84 2010.04.29 - Documentation fixes to the En stemmer and removal
+                          of the accidentally included lib/Lingua/test.pl file
+                          Thanks goes to Aaron Naiman for bringing the
+                          documentation error to my attention and to
+                          Alexandr Ciornii and 'kmx' for the pointing out
+                          the problem with the test.pl file.
+
         0.83 2007.06.23 - Disabled Italian locale tests due to changes
                           in behavior of Lingua::Stem::It causing
                           test breakage

@@ -5,7 +5,6 @@ examples/benchmark-stemmers.pl
 examples/benchmark_stemmers.plx
 examples/collected_works_poe.txt
 examples/huckfinn.txt
-examples/tmon.out
 examples/voc.txt
 GPL_License.txt
 lib/Lingua/Stem.pm
@@ -19,7 +18,6 @@ lib/Lingua/Stem/Gl.pm
 lib/Lingua/Stem/No.pm
 lib/Lingua/Stem/Pt.pm
 lib/Lingua/Stem/Sv.pm
-lib/Lingua/test.pl
 LICENSE
 Makefile.PL
 MANIFEST
